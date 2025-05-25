@@ -1,5 +1,5 @@
-import { Home, BookOpen, GraduationCap, DollarSign } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import UserSidebar from '../components/UserSidebar';
 
 export default function MainPanel() {
 
@@ -39,30 +39,7 @@ export default function MainPanel() {
       <Navbar />
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 min-h-[calc(100vh-64px)] bg-white shadow-sm p-4">
-          <div className="mb-6">
-            <h2 className="text-sm font-medium text-gray-500">Menu</h2>
-          </div>
-          
-          <nav className="space-y-1">
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-900 rounded-lg bg-gray-100">
-              <Home className="w-5 h-5 mr-3" />
-              Home
-            </a>
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50">
-              <BookOpen className="w-5 h-5 mr-3" />
-              Classes
-            </a>
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50">
-              <GraduationCap className="w-5 h-5 mr-3" />
-              Grades
-            </a>
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50">
-              <DollarSign className="w-5 h-5 mr-3" />
-              Payment
-            </a>
-          </nav>
-        </div>
+        <UserSidebar />
 
         {/* Main Content */}
         <div className="flex-1 p-8">

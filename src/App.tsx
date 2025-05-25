@@ -5,6 +5,8 @@ import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import MainPanel from './pages/MainPanel';
 import PrivateRoute from './components/PrivateRoute';
+import Unauthorized from './pages/unauthorized';
+import Teachers from './pages/AdminTeachers';
 
 function App() {
   return (
@@ -13,11 +15,20 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
         <Route
           path="/admin-dashboard"
           element={
             <PrivateRoute allowedRoles={['manager']}>
               <AdminDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/teachers"
+          element={
+            <PrivateRoute allowedRoles={['manager']}>
+              <Teachers />
             </PrivateRoute>
           }
         />
@@ -34,11 +45,6 @@ function App() {
     </Router>
   );
 
-  // return (
-  //   <div>
-  //     <h1>Hello World</h1>
-  //   </div>
-  // );
 }
 
 export default App;
