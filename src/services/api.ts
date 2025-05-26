@@ -1,6 +1,7 @@
 import axios from 'axios';
 // Import AuthApiResponse (which is now updated) and the internal User types
 import { AuthApiResponse, LoginCredentials, RegisterData } from '../types/auth';
+import { ApiTeachersResponse, TeacherRegistrationData, TeacherRegistrationResponse } from '../types/teachers';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/v1',
@@ -54,5 +55,18 @@ export const register = async (data: RegisterData): Promise<AuthApiResponse> => 
   const response = await api.post<AuthApiResponse>('/auth/register', data);
   return response.data;
 };
+
+// Teachers API functions
+export const getTeachers = async (): Promise<ApiTeachersResponse> => {
+  const response = await api.get<ApiTeachersResponse>('/teachers');
+  return response.data;
+};
+
+// Teacher Registration API functions
+export const registerTeacher = async (data: TeacherRegistrationData): Promise<TeacherRegistrationResponse> => {
+  const response = await api.post<TeacherRegistrationResponse>('/users', data);
+  return response.data;
+};
+
 
 export default api;

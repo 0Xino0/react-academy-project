@@ -54,7 +54,7 @@ export default function Login() {
         navigate('/main-panel');
       }
     } catch (error: any) {
-      console.error('Login Page Submit Error:', error);
+      toast.error('Login Page Submit Error:', error);
       const errorMessage = 
         error?.response?.data?.message || 
         (error.message === 'Network Error' ? 'Network Error: Could not connect to server.' : 'Invalid credentials or server error.');

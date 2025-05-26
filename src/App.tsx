@@ -5,8 +5,9 @@ import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import MainPanel from './pages/MainPanel';
 import PrivateRoute from './components/PrivateRoute';
-import Unauthorized from './pages/unauthorized';
+import Unauthorized from './pages/Unauthorized';
 import Teachers from './pages/AdminTeachers';
+import TeacherRegistration from './pages/TeacherRegistration';
 
 function App() {
   return (
@@ -29,6 +30,14 @@ function App() {
           element={
             <PrivateRoute allowedRoles={['manager']}>
               <Teachers />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/teachers/new"
+          element={
+            <PrivateRoute allowedRoles={['manager']}>
+              <TeacherRegistration />
             </PrivateRoute>
           }
         />

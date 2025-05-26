@@ -50,3 +50,14 @@ export interface RegisterData {
   password: string;
   password_confirmation: string;
 }
+
+export interface ApiTeacher {
+  id: number;
+  user_id: number;
+  salary: number;
+  degree: string;
+  bio: string;
+  resume: string;
+  created_at: string;
+  updated_at: string;
+}
