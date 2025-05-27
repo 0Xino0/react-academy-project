@@ -5,6 +5,7 @@ import { login } from '../services/api';
 import toast from 'react-hot-toast';
 import { LogIn } from 'lucide-react';
 import { User as AppUser } from '../types/auth'; // Internal User interface
+import axios, { AxiosError } from 'axios';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,8 +15,8 @@ export default function Login() {
     password: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent form default submission
     setLoading(true);
 
     try {
@@ -53,12 +54,52 @@ export default function Login() {
       } else {
         navigate('/main-panel');
       }
-    } catch (error: any) {
-      toast.error('Login Page Submit Error:', error);
-      const errorMessage = 
-        error?.response?.data?.message || 
-        (error.message === 'Network Error' ? 'Network Error: Could not connect to server.' : 'Invalid credentials or server error.');
-      toast.error(errorMessage);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        
+        // Network error
+        if (axiosError.code === 'ERR_NETWORK') {
+          toast.error('Network Error: Please check your internet connection.');
+          return;
+        }
+
+        // Validation error
+        if (axiosError.response?.status === 422) {
+          const validationErrors = axiosError.response.data as { errors: Record<string, string[]> };
+          if (validationErrors) {
+            Object.entries(validationErrors.errors).forEach(([field, messages]) => {
+              if (Array.isArray(messages)) {
+                messages.forEach(message => {
+                  toast.error(`${field}: ${message}`);
+                });
+              }
+            });
+          } else {
+            toast.error((axiosError.response.data as { message?: string })?.message || 'Validation error');
+          }
+          return;
+        }
+
+        // Authentication error
+        if (axiosError.response?.status === 401) {
+          toast.error('Invalid email or password');
+          return;
+        }
+
+        // Server error
+        if (axiosError.response && axiosError.response.status >= 500) {
+          toast.error('Server error. Please try again later.');
+          return;
+        }
+
+        // Other errors
+        const errorMessage = (axiosError.response?.data as { message?: string })?.message || 'Login failed';
+        toast.error(errorMessage);
+      } else {
+        toast.error('Unexpected error. Please try again.');
+      }
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }

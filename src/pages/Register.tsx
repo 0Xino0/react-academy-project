@@ -68,9 +68,15 @@ export default function Register() {
       // Decide where to navigate: directly to a panel, or to login page
       toast.success('Registration successful!'); // Optional success message
       navigate('/main-panel'); // Or '/login'
-    } catch (error: any) {
+    } catch (error) {
       console.error('Register Page Submit Error:', error);
-      const errorMessage = error?.response?.data?.message || 'Registration failed. Please try again.';
+      // Try to extract error message from error object, fallback to default
+      const errorMessage =
+        (typeof error === 'object' &&
+          error !== null &&
+          // @ts-expect-error: may not exist, but we want to try
+          error.response?.data?.message) ||
+        'Registration failed. Please try again.';
       toast.error(errorMessage);
     } finally {
       setLoading(false);
