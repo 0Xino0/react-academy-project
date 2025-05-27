@@ -8,6 +8,8 @@ import PrivateRoute from './components/PrivateRoute';
 import Unauthorized from './pages/Unauthorized';
 import Teachers from './pages/AdminTeachers';
 import TeacherRegistration from './pages/TeacherRegistration';
+import Terms from './pages/Terms';
+import Courses from './pages/Courses';
 
 function App() {
   return (
@@ -38,6 +40,22 @@ function App() {
           element={
             <PrivateRoute allowedRoles={['manager']}>
               <TeacherRegistration />
+            </PrivateRoute>
+          }
+        />
+        <Route
+        path='/admin/terms'
+        element={
+          <PrivateRoute allowedRoles={['manager']}>
+            <Terms />
+          </PrivateRoute>
+        }
+        />
+        <Route
+          path='/admin/courses'
+          element={
+            <PrivateRoute allowedRoles={['manager']}>
+              <Courses />
             </PrivateRoute>
           }
         />
