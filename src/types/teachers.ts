@@ -43,3 +43,20 @@ export interface TeacherRegistrationResponse {
     message: string;
     data: ApiTeacher;
 }
+
+export interface TeacherUpdateData {
+    salary: number;
+}
+
+export interface TeacherUpdateResponse {
+    status: boolean;
+    message: string;
+    data: ApiTeacher;
+}
+
+export interface TeacherDeleteResponse {
+    status: boolean;
+    message: string;
+}
+
+
