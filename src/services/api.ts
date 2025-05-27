@@ -1,7 +1,8 @@
 import axios from 'axios';
 // Import AuthApiResponse (which is now updated) and the internal User types
 import { AuthApiResponse, LoginCredentials, RegisterData } from '../types/auth';
-import { ApiTeachersResponse, TeacherRegistrationData, TeacherRegistrationResponse } from '../types/teachers';
+import { ApiTeachersResponse, TeacherDeleteResponse, TeacherRegistrationData, TeacherRegistrationResponse, TeacherUpdateData, TeacherUpdateResponse } from '../types/teachers';
+import { DeleteTermResponse, Term, TermResponse, TermsResponse } from '../types/Terms';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/v1',
@@ -22,24 +23,32 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+    // Only attempt to refresh token if it's a 401 error and we haven't tried before
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      
       try {
-        // Ensure the refresh endpoint returns a similar AuthApiResponse structure
-        // or adjust the typing and data extraction accordingly.
         const refreshResponse = await api.post<AuthApiResponse>('/auth/refresh');
-        const { access_token } = refreshResponse.data; // Use access_token
+        const { access_token } = refreshResponse.data;
         localStorage.setItem('token', access_token);
         
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return api(originalRequest);
-      } catch (refreshError) {
+      } catch (error) {
+        // Clear auth data
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
+        
+        // Only redirect to login if we're not already on the login page
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login') {
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
       }
     }
+    
+    // For all other errors, just reject the promise
     return Promise.reject(error);
   }
 );
@@ -56,7 +65,7 @@ export const register = async (data: RegisterData): Promise<AuthApiResponse> => 
   return response.data;
 };
 
-// Teachers API functions
+// Teachers List API functions
 export const getTeachers = async (): Promise<ApiTeachersResponse> => {
   const response = await api.get<ApiTeachersResponse>('/teachers');
   return response.data;
@@ -67,6 +76,45 @@ export const registerTeacher = async (data: TeacherRegistrationData): Promise<Te
   const response = await api.post<TeacherRegistrationResponse>('/users', data);
   return response.data;
 };
+
+// Teacher Update API functions
+export const updateTeacherSalary = async (id: number, data: TeacherUpdateData): Promise<TeacherUpdateResponse> => {
+  const response = await api.put<TeacherUpdateResponse>(`teachers/${id}/admin-info`, data);
+  return response.data;
+};
+
+// Teacher Delete API functions
+export const deleteTeacher = async (id: number): Promise<TeacherDeleteResponse> => {
+  const response = await api.delete<TeacherDeleteResponse>(`teachers/${id}`);
+  return response.data;
+};
+
+// Terms List API functions
+export const getTerms = async (): Promise<TermsResponse> => {
+  const response = await api.get<TermsResponse>('/terms');
+  return response.data;
+};
+
+// Create Term API functions
+export const createTerm = async (data: Term): Promise<TermResponse> => {
+  const response = await api.post<TermResponse>('/terms', data);
+  return response.data;
+};
+
+// Update Term API functions
+export const updateTerm = async (id: number, data: Term): Promise<TermResponse> => {
+  const response = await api.put<TermResponse>(`/terms/${id}`, data);
+  return response.data;
+};
+
+// Delete Term API functions
+export const deleteTerm = async (id: number): Promise<DeleteTermResponse> => {
+  const response = await api.delete<DeleteTermResponse>(`/terms/${id}`);
+  return response.data;
+};
+
+
+
 
 
 export default api;
