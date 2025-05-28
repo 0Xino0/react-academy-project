@@ -3,6 +3,9 @@ import axios from 'axios';
 import { AuthApiResponse, LoginCredentials, RegisterData } from '../types/auth';
 import { ApiTeachersResponse, TeacherDeleteResponse, TeacherRegistrationData, TeacherRegistrationResponse, TeacherUpdateData, TeacherUpdateResponse } from '../types/teachers';
 import { DeleteTermResponse, Term, TermResponse, TermsResponse } from '../types/Terms';
+import { CourseResponse, DeleteCourseResponse } from '../types/Courses';
+import { CoursesResponse } from '../types/Courses';
+import { Course } from '../types/Courses';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/v1',
@@ -112,6 +115,33 @@ export const deleteTerm = async (id: number): Promise<DeleteTermResponse> => {
   const response = await api.delete<DeleteTermResponse>(`/terms/${id}`);
   return response.data;
 };
+
+// Courses List API functions
+export const getCourses = async(): Promise<CoursesResponse> => {
+  const response = await api.get<CoursesResponse>(`/courses`);
+  return response.data;
+};
+// Course API functions
+export const getCourse = async(id: number): Promise<CourseResponse> => {
+  const response = await api.get<CourseResponse>(`/courses/${id}`);
+  return response.data;
+};
+// Create Course API functions
+export const createCourse = async(data: Course): Promise<CourseResponse> => {
+  const response = await api.post<CourseResponse>(`/courses`, data);
+  return response.data;
+};
+// Update Course API functions
+export const updateCourse = async(id: number, data: Course): Promise<CourseResponse> => {
+  const response = await api.put<CourseResponse>(`/courses/${id}`, data);
+  return response.data;
+};
+// Delete Course API functions
+export const deleteCourse = async(id: number): Promise<DeleteCourseResponse> => {
+  const response = await api.delete<DeleteCourseResponse>(`/courses/${id}`);
+  return response.data;
+};
+
 
 
 
