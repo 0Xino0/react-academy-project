@@ -6,7 +6,8 @@ import { DeleteTermResponse, Term, TermResponse, TermsResponse } from '../types/
 import { CourseResponse, DeleteCourseResponse } from '../types/Courses';
 import { CoursesResponse } from '../types/Courses';
 import { Course } from '../types/Courses';
-import {  ClassesResponse, ClassResponse, ClassFormData, DeleteClassResponse } from '../types/classes';
+import { ClassesResponse, ClassResponse, ClassFormData, DeleteClassResponse } from '../types/classes';
+import { ApiStudentsResponse, DeleteStudentResponse } from '../types/Students';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/v1',
@@ -164,6 +165,22 @@ export const updateClass = async(id: number, data: ClassFormData): Promise<Class
 // Delete Class API functions
 export const deleteClass = async(class_id: number, term_id: number): Promise<DeleteClassResponse> => {
   const response = await api.delete<DeleteClassResponse>(`/terms/${term_id}/classes/${class_id}`);
+  return response.data;
+};
+
+// students list per class api functions
+export const getStudentsByClassId = async(class_id: number): Promise<ApiStudentsResponse> => {
+  const response = await api.get<ApiStudentsResponse>(`/classes/${class_id}/students`);
+  return response.data;
+};
+
+export const getStudentById = async(student_id: number): Promise<ApiStudentsResponse> => {
+  const response = await api.get<ApiStudentsResponse>(`/students/${student_id}`);
+  return response.data;
+};
+
+export const deleteStudent = async(student_id: number): Promise<DeleteStudentResponse> => {
+  const response = await api.delete<DeleteStudentResponse>(`/students/${student_id}`);
   return response.data;
 };
 
