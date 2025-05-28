@@ -6,6 +6,7 @@ import { DeleteTermResponse, Term, TermResponse, TermsResponse } from '../types/
 import { CourseResponse, DeleteCourseResponse } from '../types/Courses';
 import { CoursesResponse } from '../types/Courses';
 import { Course } from '../types/Courses';
+import {  ClassesResponse, ClassResponse, ClassFormData, DeleteClassResponse } from '../types/classes';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/v1',
@@ -142,8 +143,29 @@ export const deleteCourse = async(id: number): Promise<DeleteCourseResponse> => 
   return response.data;
 };
 
+// classes list api functions(for admin)
+export const getClassesByTermId = async(termId: number): Promise<ClassesResponse> => {
+  const response = await api.get<ClassesResponse>(`/terms/${termId}/classes`);
+  return response.data;
+};
 
+// Create Class API functions
+export const createClass = async(data: ClassFormData): Promise<ClassResponse> => {
+  const response = await api.post<ClassResponse>(`/terms/${data.term_id}/classes`, data);
+  return response.data;
+};
 
+// Update Class API functions
+export const updateClass = async(id: number, data: ClassFormData): Promise<ClassResponse> => {
+  const response = await api.put<ClassResponse>(`/terms/${data.term_id}/classes/${id}`, data);
+  return response.data;
+};
+
+// Delete Class API functions
+export const deleteClass = async(class_id: number, term_id: number): Promise<DeleteClassResponse> => {
+  const response = await api.delete<DeleteClassResponse>(`/terms/${term_id}/classes/${class_id}`);
+  return response.data;
+};
 
 
 

@@ -32,10 +32,13 @@ export default function AdminSidebar() {
           <BookOpen className="w-5 h-5 mr-3" />
           Courses
         </button>
-        <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50">
+        <button 
+          onClick={() => navigate('/admin/classes')}
+          className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50"
+        >
           <MessageSquare className="w-5 h-5 mr-3" />
           Classes
-        </a>
+        </button>
         <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50">
           <Users2 className="w-5 h-5 mr-3" />
           Students
