@@ -11,6 +11,8 @@ import TeacherRegistration from './pages/TeacherRegistration';
 import Terms from './pages/Terms';
 import Courses from './pages/Courses';
 import Classes from './pages/Classes';
+import Students from './pages/Admin panel/Students';
+import Schedule from './pages/Admin panel/Schedule';
 
 function App() {
   return (
@@ -65,6 +67,22 @@ function App() {
           element={
             <PrivateRoute allowedRoles={['manager']}>
               <Classes />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/admin/students'
+          element={
+            <PrivateRoute allowedRoles={['manager']}>
+              <Students />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/admin/schedule'
+          element={
+            <PrivateRoute allowedRoles={['manager']}>
+              <Schedule />
             </PrivateRoute>
           }
         />
