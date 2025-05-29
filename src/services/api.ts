@@ -8,6 +8,7 @@ import { CoursesResponse } from '../types/Courses';
 import { Course } from '../types/Courses';
 import { ClassesResponse, ClassResponse, ClassFormData, DeleteClassResponse } from '../types/classes';
 import { ApiStudentsResponse, DeleteStudentResponse } from '../types/Students';
+import { ApiScheduleFormData, ApiScheduleResponse, ApiSchedulesResponse } from '../types/Schedule';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/v1',
@@ -181,6 +182,30 @@ export const getStudentById = async(student_id: number): Promise<ApiStudentsResp
 
 export const deleteStudent = async(student_id: number): Promise<DeleteStudentResponse> => {
   const response = await api.delete<DeleteStudentResponse>(`/students/${student_id}`);
+  return response.data;
+};
+
+// schedule list api functions
+export const getSchedules = async(term_id: number): Promise<ApiSchedulesResponse> => {
+  const response = await api.get<ApiSchedulesResponse>(`/terms/${term_id}/schedules`);
+  return response.data;
+};
+
+// Create Schedule API functions
+export const createSchedule = async(term_id: number, class_id: number, data: ApiScheduleFormData): Promise<ApiScheduleResponse> => {
+  const response = await api.post<ApiScheduleResponse>(`/terms/${term_id}/classes/${class_id}/schedules`, data);
+  return response.data;
+};
+
+// Update Schedule API functions
+export const updateSchedule = async(term_id: number, class_id: number, schedule_id: number, data: ApiScheduleFormData): Promise<ApiScheduleResponse> => {
+  const response = await api.put<ApiScheduleResponse>(`/terms/${term_id}/classes/${class_id}/schedules/${schedule_id}`, data);
+  return response.data;
+};
+
+// Delete Schedule API functions
+export const deleteSchedule = async(term_id: number, class_id: number, schedule_id: number): Promise<ApiScheduleResponse> => {
+  const response = await api.delete<ApiScheduleResponse>(`/terms/${term_id}/classes/${class_id}/schedules/${schedule_id}`);
   return response.data;
 };
 
