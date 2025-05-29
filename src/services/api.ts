@@ -9,6 +9,7 @@ import { Course } from '../types/Courses';
 import { ClassesResponse, ClassResponse, ClassFormData, DeleteClassResponse } from '../types/classes';
 import { ApiStudentsResponse, DeleteStudentResponse } from '../types/Students';
 import { ApiScheduleFormData, ApiScheduleResponse, ApiSchedulesResponse } from '../types/Schedule';
+import { ApiGradesResponse } from '../types/Grades';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/v1',
@@ -208,6 +209,14 @@ export const deleteSchedule = async(term_id: number, class_id: number, schedule_
   const response = await api.delete<ApiScheduleResponse>(`/terms/${term_id}/classes/${class_id}/schedules/${schedule_id}`);
   return response.data;
 };
+
+// Grades List API functions
+export const getGrades = async(class_id: number): Promise<ApiGradesResponse> => {
+  const response = await api.get<ApiGradesResponse>(`/classes/${class_id}/grades`);
+  return response.data;
+};
+
+
 
 
 

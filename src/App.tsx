@@ -13,6 +13,7 @@ import Courses from './pages/Courses';
 import Classes from './pages/Classes';
 import Students from './pages/Admin panel/Students';
 import Schedule from './pages/Admin panel/Schedule';
+import Grades from './pages/Admin panel/Grades';
 
 function App() {
   return (
@@ -83,6 +84,14 @@ function App() {
           element={
             <PrivateRoute allowedRoles={['manager']}>
               <Schedule />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/admin/grades'
+          element={
+            <PrivateRoute allowedRoles={['manager']}>
+              <Grades />
             </PrivateRoute>
           }
         />
