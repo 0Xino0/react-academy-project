@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Pencil, Trash2, X } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import AdminSidebar from '../components/AdminSidebar';
-import { getTerms, createTerm, updateTerm, deleteTerm } from '../services/api';
-import { Term, TermFormData } from '../types/Terms';
+import Navbar from '../../components/Navbar';
+import AdminSidebar from '../../components/AdminSidebar';
+import { getTerms, createTerm, updateTerm, deleteTerm } from '../../services/api';
+import { Term, TermFormData } from '../../types/Terms';
 import { AxiosError } from 'axios';
 
 // Helper function to format date to yyyy/mm/dd

@@ -2,10 +2,10 @@ import { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { UserPlus } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import AdminSidebar from '../components/AdminSidebar';
-import { registerTeacher } from '../services/api';
-import { TeacherRegistrationData } from '../types/teachers';
+import Navbar from '../../components/Navbar';
+import AdminSidebar from '../../components/AdminSidebar';
+import { registerTeacher } from '../../services/api';
+import { TeacherRegistrationData } from '../../types/teachers';
 import axios from 'axios';
 
 export default function TeacherRegistration() {

@@ -6,14 +6,18 @@ import AdminDashboard from './pages/AdminDashboard';
 import MainPanel from './pages/MainPanel';
 import PrivateRoute from './components/PrivateRoute';
 import Unauthorized from './pages/Unauthorized';
-import Teachers from './pages/AdminTeachers';
-import TeacherRegistration from './pages/TeacherRegistration';
-import Terms from './pages/Terms';
-import Courses from './pages/Courses';
-import Classes from './pages/Classes';
+import Teachers from './pages/Admin panel/AdminTeachers';
+import TeacherRegistration from './pages/Admin panel/TeacherRegistration';
+import Terms from './pages/Admin panel/Terms';
+import Courses from './pages/Admin panel/Courses';
+import Classes from './pages/Admin panel/Classes';
 import Students from './pages/Admin panel/Students';
 import Schedule from './pages/Admin panel/Schedule';
 import Grades from './pages/Admin panel/Grades';
+import MainClasses from './pages/main Panel/MainClasses';
+import MainGrades from './pages/main Panel/MainGrades';
+import MainPayment from './pages/main Panel/MainPayment';
+import RecordGrades from './pages/main Panel/RecordGrades';
 
 function App() {
   return (
@@ -96,6 +100,22 @@ function App() {
           }
         />
         <Route
+          path='/classes'
+          element={
+            <PrivateRoute allowedRoles={['student', 'teacher']}>
+              <MainClasses />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/grades"
+          element={
+            <PrivateRoute allowedRoles={['student', 'teacher']}>
+              <MainGrades />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/main-panel"
           element={
             <PrivateRoute allowedRoles={['student', 'teacher']}>
@@ -103,6 +123,23 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/payment"
+          element={
+            <PrivateRoute allowedRoles={['student']}>
+              <MainPayment />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/grades/record/:class_id"
+          element={
+            <PrivateRoute allowedRoles={['teacher']}>
+              <RecordGrades />
+            </PrivateRoute>
+          }
+        />
+        
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

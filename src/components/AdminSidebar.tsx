@@ -1,4 +1,4 @@
-import { Users, CalendarDays, BookOpen, MessageSquare, Users2, Calendar, GraduationCap, DollarSign } from 'lucide-react';
+import { Users, CalendarDays, BookOpen, MessageSquare, Users2, Calendar, GraduationCap, DollarSign, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminSidebar() {
@@ -11,6 +11,13 @@ export default function AdminSidebar() {
       </div>
       
       <nav className="space-y-1">
+      <button 
+          onClick={() => navigate('/admin-dashboard')}
+          className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50"
+        >
+          <Home className="w-5 h-5 mr-3" />
+          Home
+        </button>
         <button 
           onClick={() => navigate('/admin/teachers')}
           className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50"

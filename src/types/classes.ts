@@ -1,6 +1,7 @@
 import { Course } from './Courses';
 import { Term } from './Terms';
 import { ApiTeacher } from './teachers';
+import { Registration } from './Registrations';
 
 export interface Class {
     id: number;
@@ -19,6 +20,26 @@ export interface Class {
     course: Course;
     term: Term;
     teacher: ApiTeacher;
+}
+
+export interface ClassForStudent {
+    id: number;
+    name: string;
+    course_id: number;
+    term_id: number;
+    teacher_id: number;
+    start_date: string;
+    end_date: string;
+    tuition_fee: number;
+    capacity: number;
+    startRegistration_date: string;
+    endRegistration_date: string;
+    created_at: string;
+    updated_at: string;
+    course: Course;
+    term: Term;
+    teacher: ApiTeacher;
+    registrations: Registration[];
 }
 
 export interface ClassesResponse {
@@ -51,3 +72,11 @@ export interface DeleteClassResponse {
     message: string;
     error: string;
 }
+
+export interface ClassesResponseForStudent {
+    status: boolean;
+    message: string;
+    classes: ClassForStudent[];
+}
+
+

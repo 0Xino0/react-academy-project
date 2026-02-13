@@ -1,7 +1,9 @@
 import Navbar from '../components/Navbar';
 import AdminSidebar from '../components/AdminSidebar';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -18,6 +20,9 @@ export default function AdminDashboard() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Creating class schedules */}
+              <button
+              onClick={() => navigate('/admin/schedule')}
+              >
               <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                 <img 
                   src="https://images.pexels.com/photos/6863175/pexels-photo-6863175.jpeg"
@@ -28,8 +33,10 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-medium text-gray-900">Creating class schedules</h3>
                 </div>
               </div>
+              </button>
 
               {/* Financial affairs */}
+              
               <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                 <img 
                   src="https://images.pexels.com/photos/6863250/pexels-photo-6863250.jpeg"
@@ -40,8 +47,12 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-medium text-gray-900">Financial affairs</h3>
                 </div>
               </div>
+              
 
               {/* Creating class */}
+              <button
+              onClick={() => navigate('/admin/classes')}
+              >
               <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                 <img 
                   src="https://images.pexels.com/photos/5905498/pexels-photo-5905498.jpeg"
@@ -52,6 +63,7 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-medium text-gray-900">Creating class</h3>
                 </div>
               </div>
+              </button>
             </div>
           </div>
         </div>

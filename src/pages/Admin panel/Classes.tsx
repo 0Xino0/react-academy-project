@@ -1,12 +1,12 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { PlusCircle, Pencil, Trash2, X } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import AdminSidebar from '../components/AdminSidebar';
-import { getTerms, getClassesByTermId, getCourses, getTeachers, createClass, updateClass, deleteClass } from '../services/api';
-import { Term } from '../types/Terms';
-import { Class, ClassFormData } from '../types/classes';
-import { Course } from '../types/Courses';
-import { ApiTeacher } from '../types/teachers';
+import Navbar from '../../components/Navbar';
+import AdminSidebar from '../../components/AdminSidebar';
+import { getTerms, getClassesByTermId, getCourses, getTeachers, createClass, updateClass, deleteClass } from '../../services/api';
+import { Term } from '../../types/Terms';
+import { Class, ClassFormData } from '../../types/classes';
+import { Course } from '../../types/Courses';
+import { ApiTeacher } from '../../types/teachers';
 import toast from 'react-hot-toast';
 
 interface ClassFormProps {

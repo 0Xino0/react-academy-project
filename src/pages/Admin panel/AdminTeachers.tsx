@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Pencil, Trash2, X } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import AdminSidebar from '../components/AdminSidebar';
+import Navbar from '../../components/Navbar';
+import AdminSidebar from '../../components/AdminSidebar';
 import { useNavigate } from 'react-router-dom';
-import { getTeachers, updateTeacherSalary, deleteTeacher } from '../services/api';
-import { ApiTeacher } from '../types/teachers';
+import { getTeachers, updateTeacherSalary, deleteTeacher } from '../../services/api';
+import { ApiTeacher } from '../../types/teachers';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 

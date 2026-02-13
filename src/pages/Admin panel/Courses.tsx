@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Pencil, Trash2, X } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import AdminSidebar from '../components/AdminSidebar';
-import { getCourses, createCourse, updateCourse, deleteCourse, getCourse } from '../services/api';
+import Navbar from '../../components/Navbar';
+import AdminSidebar from '../../components/AdminSidebar';
+import { getCourses, createCourse, updateCourse, deleteCourse, getCourse } from '../../services/api';
 import toast from 'react-hot-toast';
-import { Course } from '../types/Courses';
+import { Course } from '../../types/Courses';
 
 export default function Courses() {
   const [courses, setCourses] = useState<Course[]>([]);

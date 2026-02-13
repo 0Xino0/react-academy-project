@@ -6,10 +6,12 @@ import { DeleteTermResponse, Term, TermResponse, TermsResponse } from '../types/
 import { CourseResponse, DeleteCourseResponse } from '../types/Courses';
 import { CoursesResponse } from '../types/Courses';
 import { Course } from '../types/Courses';
-import { ClassesResponse, ClassResponse, ClassFormData, DeleteClassResponse } from '../types/classes';
+import { ClassesResponse, ClassResponse, ClassFormData, DeleteClassResponse, ClassesResponseForStudent } from '../types/classes';
 import { ApiStudentsResponse, DeleteStudentResponse } from '../types/Students';
 import { ApiScheduleFormData, ApiScheduleResponse, ApiSchedulesResponse } from '../types/Schedule';
-import { ApiGradesResponse } from '../types/Grades';
+import { ApiGradeResponse, ApiGradesResponse } from '../types/Grades';
+import { DeleteRegistrationResponse } from '../types/Registrations';
+import { ApiDebtResponse } from '../types/Debts';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/v1',
@@ -30,35 +32,49 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Only attempt to refresh token if it's a 401 error and we haven't tried before
+    // Check if the response status is 401 (Unauthorized) and it's not a retry
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
       try {
-        const refreshResponse = await api.post<AuthApiResponse>('/auth/refresh');
-        const { access_token } = refreshResponse.data;
+        // Attempt to refresh the token using the refresh endpoint
+        const { data: refreshData } = await api.post<AuthApiResponse>('/auth/refresh');
+        const { access_token, user } = refreshData;
+
+        // Save the new token to localStorage
         localStorage.setItem('token', access_token);
-        
+
+        // Store the updated user info (including role)
+        const simplifiedUser = {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          // If using Spatie and @roles is an array:
+          role: user.roles[0].name as 'manager' | 'student' | 'teacher',
+        };
+        localStorage.setItem('user', JSON.stringify(simplifiedUser));
+
+        // Update the Authorization header for the original request
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
+
+        // Retry the original request with the new token
         return api(originalRequest);
-      } catch (error) {
-        // Clear auth data
+      } catch (_err) {
+        // If refresh fails, clear session and redirect to login page
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        
-        // Only redirect to login if we're not already on the login page
-        const currentPath = window.location.pathname;
-        if (currentPath !== '/login') {
+        if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
-        return Promise.reject(error);
+        return Promise.reject(_err);
       }
     }
-    
-    // For all other errors, just reject the promise
+
+    // If not 401 or retry already attempted, just reject the error
     return Promise.reject(error);
   }
 );
+
 
 // Login function returns the API response structure
 export const login = async (credentials: LoginCredentials): Promise<AuthApiResponse> => {
@@ -216,6 +232,45 @@ export const getGrades = async(class_id: number): Promise<ApiGradesResponse> => 
   return response.data;
 };
 
+// grade of student api functions
+export const getGradesOfStudent = async(class_id: number): Promise<ApiGradeResponse> => {
+  const response = await api.get<ApiGradeResponse>(`/me/classes/${class_id}/grades`);
+  return response.data;
+};
+
+
+
+export const getClassesForTeacher = async(term_id: number): Promise<ClassesResponse> => {
+  const response = await api.get<ClassesResponse>(`/me/teaching-terms/${term_id}/classes`);
+  return response.data;
+};
+
+export const getSchedulesForTeacher = async(term_id: number): Promise<ApiSchedulesResponse> => {
+  const response = await api.get<ApiSchedulesResponse>(`/me/teaching-terms/${term_id}/schedules`);
+  return response.data;
+};
+
+export const getClassesForStudent = async(term_id: number): Promise<ClassesResponseForStudent> => {
+  const response = await api.get<ClassesResponseForStudent>(`/me/studying-terms/${term_id}/classes`);
+  return response.data;
+};
+
+export const getSchedulesForStudent = async(term_id: number): Promise<ApiSchedulesResponse> => {
+  const response = await api.get<ApiSchedulesResponse>(`/me/studying-terms/${term_id}/schedules`);
+  return response.data;
+};
+
+// delete registration api functions
+export const deleteRegistration = async(class_id: number, term_id: number, registration_id: number): Promise<DeleteRegistrationResponse> => {
+  const response = await api.delete<DeleteRegistrationResponse>(`/terms/${term_id}/classes/${class_id}/registrations/${registration_id}`);
+  return response.data;
+};
+
+// debts list api functions
+export const getDebtsOfStudent = async(): Promise<ApiDebtResponse> => {
+  const response = await api.get<ApiDebtResponse>(`/me/students/debts`);
+  return response.data;
+};
 
 
 
