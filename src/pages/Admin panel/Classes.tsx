@@ -19,8 +19,8 @@ interface ClassFormProps {
     end_date: string;
     capacity: string;
     tuition_fee: string;
-    startRegistration_date: string;
-    endRegistration_date: string;
+    startRegistration_Date: string;
+    endRegistration_Date: string;
   };
   setFormData: Dispatch<SetStateAction<ClassFormProps['formData']>>;
   terms: Term[];
@@ -162,8 +162,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
         <input
           type="date"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          value={formData.startRegistration_date}
-          onChange={(e) => setFormData({ ...formData, startRegistration_date: e.target.value })}
+          value={formData.startRegistration_Date}
+          onChange={(e) => setFormData({ ...formData, startRegistration_Date: e.target.value })}
           disabled={isSubmitting}
         />
       </div>
@@ -172,8 +172,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
         <input
           type="date"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          value={formData.endRegistration_date}
-          onChange={(e) => setFormData({ ...formData, endRegistration_date: e.target.value })}
+          value={formData.endRegistration_Date}
+          onChange={(e) => setFormData({ ...formData, endRegistration_Date: e.target.value })}
           disabled={isSubmitting}
         />
       </div>
