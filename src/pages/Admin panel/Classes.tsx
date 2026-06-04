@@ -222,8 +222,8 @@ export default function Classes() {
     end_date: '',
     capacity: '',
     tuition_fee: '',
-    startRegistration_date: '',
-    endRegistration_date: ''
+    startRegistration_Date: '',
+    endRegistration_Date: ''
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Class | null>(null);
@@ -316,7 +316,7 @@ export default function Classes() {
       if (!formData.name || !formData.course_id || !formData.teacher_id || 
           !formData.term_id || !formData.start_date || !formData.end_date || 
           !formData.capacity || !formData.tuition_fee || 
-          !formData.startRegistration_date || !formData.endRegistration_date) {
+          !formData.startRegistration_Date || !formData.endRegistration_Date) {
         setFormError('Please fill in all required fields');
         return;
       }
@@ -330,8 +330,8 @@ export default function Classes() {
         end_date: formData.end_date,
         capacity: parseInt(formData.capacity),
         tuition_fee: parseFloat(formData.tuition_fee),
-        startRegistration_date: formData.startRegistration_date,
-        endRegistration_date: formData.endRegistration_date
+        startRegistration_Date: formData.startRegistration_Date,
+        endRegistration_Date: formData.endRegistration_Date
       };
 
       if (isEditModalOpen && selectedClass) {
@@ -359,8 +359,8 @@ export default function Classes() {
             end_date: '',
             capacity: '',
             tuition_fee: '',
-            startRegistration_date: '',
-            endRegistration_date: ''
+            startRegistration_Date: '',
+            endRegistration_Date: ''
           });
           
           // Close modal
@@ -391,8 +391,8 @@ export default function Classes() {
       end_date: classItem.end_date,
       capacity: classItem.capacity.toString(),
       tuition_fee: classItem.tuition_fee.toString(),
-      startRegistration_date: classItem.startRegistration_date,
-      endRegistration_date: classItem.endRegistration_date
+      startRegistration_Date: classItem.startRegistration_Date,
+      endRegistration_Date: classItem.endRegistration_Date
     });
     setIsEditModalOpen(true);
   };
@@ -459,8 +459,8 @@ export default function Classes() {
                   end_date: '',
                   capacity: '',
                   tuition_fee: '',
-                  startRegistration_date: '',
-                  endRegistration_date: ''
+                  startRegistration_Date: '',
+                  endRegistration_Date: ''
                 });
                 setIsAddModalOpen(true);
               }}
@@ -593,8 +593,8 @@ export default function Classes() {
                   end_date: '',
                   capacity: '',
                   tuition_fee: '',
-                  startRegistration_date: '',
-                  endRegistration_date: ''
+                  startRegistration_Date: '',
+                  endRegistration_Date: ''
                 });
               }}
             />
@@ -633,8 +633,8 @@ export default function Classes() {
                   end_date: '',
                   capacity: '',
                   tuition_fee: '',
-                  startRegistration_date: '',
-                  endRegistration_date: ''
+                  startRegistration_Date: '',
+                  endRegistration_Date: ''
                 });
               }}
             />
@@ -690,11 +690,11 @@ export default function Classes() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Registration Start</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedClass.startRegistration_date}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedClass.startRegistration_Date}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Registration End</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedClass.endRegistration_date}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedClass.endRegistration_Date}</p>
                 </div>
               </div>
 

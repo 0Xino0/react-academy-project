@@ -13,8 +13,8 @@ export interface Class {
     end_date: string;
     tuition_fee: number;
     capacity: number;
-    startRegistration_date: string;
-    endRegistration_date: string;
+    startRegistration_Date: string;
+    endRegistration_Date: string;
     created_at: string;
     updated_at: string;
     course: Course;
@@ -32,8 +32,8 @@ export interface ClassForStudent {
     end_date: string;
     tuition_fee: number;
     capacity: number;
-    startRegistration_date: string;
-    endRegistration_date: string;
+    startRegistration_Date: string;
+    endRegistration_Date: string;
     created_at: string;
     updated_at: string;
     course: Course;
@@ -63,8 +63,8 @@ export interface ClassFormData {
     end_date: string;
     tuition_fee: number;
     capacity: number;
-    startRegistration_date: string;
-    endRegistration_date: string;
+    startRegistration_Date: string;
+    endRegistration_Date: string;
 }
 
 export interface DeleteClassResponse {

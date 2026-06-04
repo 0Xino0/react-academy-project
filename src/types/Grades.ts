@@ -10,8 +10,8 @@ export interface ApiGradeClass{
     end_date: string;
     tuition_fee: number;
     capacity: number;
-    startRegistration_date: string;
-    endRegistration_date: string;
+    startRegistration_Date: string;
+    endRegistration_Date: string;
     created_at: string;
     updated_at: string;
     teacher: ApiTeacher;

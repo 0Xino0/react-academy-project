@@ -10,8 +10,8 @@ export interface ApiScheduleClass {
     created_at: string;
     updated_at: string;
     term_id: number;
-    startRegistration_date: string;
-    endRegistration_date: string;
+    startRegistration_Date: string;
+    endRegistration_Date: string;
 }
 
 export interface ApiSchedule {

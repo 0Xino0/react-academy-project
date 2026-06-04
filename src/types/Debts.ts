@@ -12,8 +12,8 @@ export interface ApiRegistrationClassDebt{
     end_date: string;
     tuition_fee: number;
     capacity: number;
-    startRegistration_date: string;
-    endRegistration_date: string;
+    startRegistration_Date: string;
+    endRegistration_Date: string;
     
 }
 
