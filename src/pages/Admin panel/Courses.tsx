@@ -4,7 +4,7 @@ import Navbar from '../../components/Navbar';
 import AdminSidebar from '../../components/AdminSidebar';
 import { getCourses, createCourse, updateCourse, deleteCourse, getCourse } from '../../services/api';
 import toast from 'react-hot-toast';
-import { Course } from '../../types/Courses';
+import type { Course, CourseFormData } from '../../types/Courses';
 
 export default function Courses() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -40,17 +40,14 @@ export default function Courses() {
 
   const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
-    const courseData: Course = {
-      id: 0, // This will be set by the backend
+    const courseData: CourseFormData = {
       title: formData.title,
       level: formData.level,
       description: formData.description,
-      updated_at: new Date().toISOString(),
-      created_at: new Date().toISOString()
     };
     try {
       const response = await createCourse(courseData);
-      setCourses([...courses, response.data]);
+      setCourses(current => [...current, response.data]);
       setIsAddModalOpen(false);
       setFormData({ title: '', level: '', description: '' });
       toast.success('Course added successfully');
@@ -64,7 +61,7 @@ export default function Courses() {
     setFormData({
       title: course.title,
       level: course.level,
-      description: course.description
+      description: course.description ?? ''
     });
     setIsEditModalOpen(true);
   };
@@ -72,17 +69,14 @@ export default function Courses() {
   const handleUpdateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCourse) return;
-    const courseData: Course = {
-      id: selectedCourse.id,
+    const courseData: CourseFormData = {
       title: formData.title,
       level: formData.level,
       description: formData.description,
-      updated_at: new Date().toISOString(),
-      created_at: selectedCourse.created_at
     };
     try {
       const response = await updateCourse(selectedCourse.id, courseData);
-      setCourses(courses.map(course => course.id === selectedCourse.id ? response.data : course));
+      setCourses(current => current.map(course => course.id === selectedCourse.id ? response.data : course));
       setIsEditModalOpen(false);
       toast.success('Course updated successfully');
     } catch {
@@ -94,7 +88,7 @@ export default function Courses() {
     if (!selectedCourse) return;
     try {
       await deleteCourse(selectedCourse.id);
-      setCourses(courses.filter(course => course.id !== selectedCourse.id));
+      setCourses(current => current.filter(course => course.id !== selectedCourse.id));
       setIsDeleteModalOpen(false);
       toast.success('Course deleted successfully');
     } catch {

@@ -11,7 +11,7 @@ export interface Class {
     teacher_id: number;
     start_date: string;
     end_date: string;
-    tuition_fee: number;
+    tuition_fee: string;
     capacity: number;
     startRegistration_Date: string;
     endRegistration_Date: string;
@@ -30,7 +30,7 @@ export interface ClassForStudent {
     teacher_id: number;
     start_date: string;
     end_date: string;
-    tuition_fee: number;
+    tuition_fee: string;
     capacity: number;
     startRegistration_Date: string;
     endRegistration_Date: string;

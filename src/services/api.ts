@@ -1,12 +1,10 @@
 import { createHttpClient } from './http';
 import { sessionStore } from './session';
+import { createCoursesApi } from './courses';
 // Import AuthApiResponse (which is now updated) and the internal User types
 import { AuthApiResponse, LoginCredentials, RegisterData } from '../types/auth';
 import { ApiTeachersResponse, TeacherDeleteResponse, TeacherRegistrationData, TeacherRegistrationResponse, TeacherUpdateData, TeacherUpdateResponse } from '../types/teachers';
 import { DeleteTermResponse, Term, TermResponse, TermsResponse } from '../types/Terms';
-import { CourseResponse, DeleteCourseResponse } from '../types/Courses';
-import { CoursesResponse } from '../types/Courses';
-import { Course } from '../types/Courses';
 import { ClassesResponse, ClassResponse, ClassFormData, DeleteClassResponse, ClassesResponseForStudent } from '../types/classes';
 import { ApiStudentsResponse, DeleteStudentResponse } from '../types/Students';
 import { ApiScheduleFormData, ApiScheduleResponse, ApiSchedulesResponse } from '../types/Schedule';
@@ -81,31 +79,7 @@ export const deleteTerm = async (id: number): Promise<DeleteTermResponse> => {
   return response.data;
 };
 
-// Courses List API functions
-export const getCourses = async(): Promise<CoursesResponse> => {
-  const response = await api.get<CoursesResponse>(`/courses`);
-  return response.data;
-};
-// Course API functions
-export const getCourse = async(id: number): Promise<CourseResponse> => {
-  const response = await api.get<CourseResponse>(`/courses/${id}`);
-  return response.data;
-};
-// Create Course API functions
-export const createCourse = async(data: Course): Promise<CourseResponse> => {
-  const response = await api.post<CourseResponse>(`/courses`, data);
-  return response.data;
-};
-// Update Course API functions
-export const updateCourse = async(id: number, data: Course): Promise<CourseResponse> => {
-  const response = await api.put<CourseResponse>(`/courses/${id}`, data);
-  return response.data;
-};
-// Delete Course API functions
-export const deleteCourse = async(id: number): Promise<DeleteCourseResponse> => {
-  const response = await api.delete<DeleteCourseResponse>(`/courses/${id}`);
-  return response.data;
-};
+export const { getCourses, getCourse, createCourse, updateCourse, deleteCourse } = createCoursesApi(api);
 
 // classes list api functions(for admin)
 export const getClassesByTermId = async(termId: number): Promise<ClassesResponse> => {

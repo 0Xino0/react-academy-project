@@ -2,7 +2,7 @@ export interface Course{
     id: number;
     title: string;
     level: string;
-    description: string;
+    description: string | null;
     updated_at: string;
     created_at: string;
     
