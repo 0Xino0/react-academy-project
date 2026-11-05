@@ -1,4 +1,6 @@
-export interface Term {
+import type { CalendarPresentation } from './calendar';
+
+export interface Term extends CalendarPresentation {
     id: number;
     year: number;
     season: string;

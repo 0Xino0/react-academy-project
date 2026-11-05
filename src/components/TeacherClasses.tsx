@@ -5,20 +5,6 @@ import { Class } from '../types/classes';
 import { ApiSchedule } from '../types/Schedule';
 import { getTerms, getClassesForTeacher, getSchedulesForTeacher } from '../services/api';
 
-// Helper function to format time in 12-hour format
-const formatTime = (time: string): string => {
-  try {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-  } catch (error) {
-    console.error('Error formatting time:', error);
-    return time; // Return original time if formatting fails
-  }
-};
-
 export default function TeacherClasses() {
   const [selectedTerm, setSelectedTerm] = useState<number | ''>('');
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -148,10 +134,10 @@ export default function TeacherClasses() {
                       {class_.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {class_.start_date}
+                      {class_.display?.start_date ?? '—'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {class_.end_date}
+                      {class_.display?.end_date ?? '—'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {class_.capacity}
@@ -209,13 +195,13 @@ export default function TeacherClasses() {
                   {schedules.map((schedule) => (
                     <tr key={schedule.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {schedule.day_of_week}
+                        {schedule.display?.day_of_week ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatTime(schedule.start_time)}
+                        {schedule.display?.start_time ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatTime(schedule.end_time)}
+                        {schedule.display?.end_time ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {schedule.class.name}

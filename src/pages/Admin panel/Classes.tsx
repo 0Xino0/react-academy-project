@@ -528,10 +528,10 @@ export default function Classes() {
                         {`${classItem.teacher.user.first_name} ${classItem.teacher.user.last_name}`}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {classItem.start_date}
+                        {classItem.display?.start_date ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {classItem.end_date}
+                        {classItem.display?.end_date ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         ${classItem.tuition_fee}
@@ -679,22 +679,22 @@ export default function Classes() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Start Date</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedClass.start_date}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedClass.display?.start_date ?? '—'}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">End Date</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedClass.end_date}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedClass.display?.end_date ?? '—'}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Registration Start</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedClass.startRegistration_Date}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedClass.display?.startRegistration_Date ?? '—'}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Registration End</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedClass.endRegistration_Date}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedClass.display?.endRegistration_Date ?? '—'}</p>
                 </div>
               </div>
 

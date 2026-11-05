@@ -69,8 +69,8 @@ const TeacherGrades = () => {
               classes.map(cls => (
                 <tr key={cls.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{cls.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer">{cls.start_date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer">{cls.end_date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer">{cls.display?.start_date ?? '—'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer">{cls.display?.end_date ?? '—'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{cls.capacity}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <button className="text-blue-700 font-semibold hover:underline" onClick={() => navigate(`/grades/record/${cls.id}`)}>Record Grades</button>

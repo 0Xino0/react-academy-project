@@ -6,15 +6,6 @@ import { getTerms, createTerm, updateTerm, deleteTerm } from '../../services/api
 import { Term, TermFormData } from '../../types/Terms';
 import { AxiosError } from 'axios';
 
-// Helper function to format date to yyyy/mm/dd
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}/${month}/${day}`;
-};
-
 export default function Terms() {
   const [terms, setTerms] = useState<Term[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -253,10 +244,10 @@ export default function Terms() {
                         {term.season.charAt(0).toUpperCase() + term.season.slice(1)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                        {formatDate(term.start_date)}
+                        {term.display?.start_date ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                        {formatDate(term.end_date)}
+                        {term.display?.end_date ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

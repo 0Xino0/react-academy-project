@@ -1,4 +1,5 @@
 import type { AxiosInstance } from 'axios';
+import { withCalendarDisplay } from './calendar.ts';
 import type { Course, CourseFormData, CourseResponse, CoursesResponse, DeleteCourseResponse } from '../types/Courses.ts';
 
 function isCourse(value: unknown): value is Course {
@@ -19,7 +20,7 @@ function requireSuccess(value: unknown): void {
 function requireCourseResponse(value: CourseResponse): CourseResponse {
   requireSuccess(value);
   if (!isCourse(value.data)) throw new Error('Invalid course response.');
-  return value;
+  return withCalendarDisplay(value);
 }
 
 export function createCoursesApi(client: AxiosInstance) {
@@ -28,7 +29,7 @@ export function createCoursesApi(client: AxiosInstance) {
       const { data } = await client.get<CoursesResponse>('/courses');
       requireSuccess(data);
       if (!Array.isArray(data.data) || !data.data.every(isCourse)) throw new Error('Invalid course list response.');
-      return data;
+      return withCalendarDisplay(data);
     },
     async getCourse(id: number): Promise<CourseResponse> {
       const { data } = await client.get<CourseResponse>(`/courses/${id}`);

@@ -124,8 +124,8 @@ const StudentGrades = () => {
                 <tr key={grade.id}>
                   <td className="px-6 py-4 border-b">{grade.class.name}</td>
                   <td className="px-6 py-4 border-b">{`${grade.class.teacher.user.first_name} ${grade.class.teacher.user.last_name}`}</td>
-                  <td className="px-6 py-4 border-b">{new Date(grade.class.start_date).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 border-b">{new Date(grade.class.end_date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 border-b">{grade.class.display?.start_date ?? '—'}</td>
+                  <td className="px-6 py-4 border-b">{grade.class.display?.end_date ?? '—'}</td>
                   <td className="px-6 py-4 border-b">{grade.grade}</td>
                 </tr>
               ))}

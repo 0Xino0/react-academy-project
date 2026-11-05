@@ -2,8 +2,9 @@ import { Course } from './Courses';
 import { Term } from './Terms';
 import { ApiTeacher } from './teachers';
 import { Registration } from './Registrations';
+import type { CalendarPresentation } from './calendar';
 
-export interface Class {
+export interface Class extends CalendarPresentation {
     id: number;
     name: string;
     course_id: number;
@@ -22,7 +23,7 @@ export interface Class {
     teacher: ApiTeacher;
 }
 
-export interface ClassForStudent {
+export interface ClassForStudent extends CalendarPresentation {
     id: number;
     name: string;
     course_id: number;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PlusCircle, Pencil, Trash2, X } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import AdminSidebar from '../../components/AdminSidebar';
@@ -6,8 +6,12 @@ import { getTerms, getSchedules, getClassesByTermId, createSchedule, updateSched
 import { ApiSchedule, ApiScheduleFormData } from '../../types/Schedule';
 import { Term } from '../../types/Terms';
 import { Class } from '../../types/classes';
+import { timeForInput } from '../../services/calendar';
+import { scheduleErrorMessage } from '../../services/schedules';
 
 export default function Schedule() {
+  const scheduleRequest = useRef(0);
+  const classRequest = useRef(0);
   const [terms, setTerms] = useState<Term[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [schedules, setSchedules] = useState<ApiSchedule[]>([]);
@@ -84,38 +88,44 @@ export default function Schedule() {
   };
 
   const fetchClasses = async (termId: number) => {
+    const request = ++classRequest.current;
     try {
       setIsLoadingClasses(true);
       setClassesError(null);
       const response = await getClassesByTermId(termId);
+      if (request !== classRequest.current) return;
       if (response.status) {
         setClasses(response.classes || []);
       } else {
         setClassesError('Failed to fetch classes');
       }
     } catch (err) {
+      if (request !== classRequest.current) return;
       console.error('Error fetching classes:', err);
       setClassesError('Error loading classes. Please try again.');
     } finally {
-      setIsLoadingClasses(false);
+      if (request === classRequest.current) setIsLoadingClasses(false);
     }
   };
 
   const fetchSchedules = async (termId: number) => {
+    const request = ++scheduleRequest.current;
     try {
       setIsLoadingSchedules(true);
       setSchedulesError(null);
       const response = await getSchedules(termId);
+      if (request !== scheduleRequest.current) return;
       if (response.status) {
         setSchedules(response.schedules || []);
       } else {
         setSchedulesError('Failed to fetch schedules');
       }
     } catch (err) {
+      if (request !== scheduleRequest.current) return;
       console.error('Error fetching schedules:', err);
       setSchedulesError('Error loading schedules. Please try again.');
     } finally {
-      setIsLoadingSchedules(false);
+      if (request === scheduleRequest.current) setIsLoadingSchedules(false);
     }
   };
 
@@ -123,31 +133,19 @@ export default function Schedule() {
     const term = terms.find(t => t.id === parseInt(termId));
     setSelectedTerm(term || null);
     setSelectedClassId('');
-    if (term) {
-      fetchClasses(term.id);
-      fetchSchedules(term.id);
-    }
+    scheduleRequest.current += 1;
+    classRequest.current += 1;
+    setSchedules([]);
+    setClasses([]);
+    setSelectedSchedule(null);
+    setSchedulesError(null);
+    setClassesError(null);
+    setIsLoadingClasses(false);
+    setIsLoadingSchedules(false);
   };
 
   const handleClassChange = (classId: string) => {
     setSelectedClassId(classId);
-  };
-
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const date = new Date();
-    date.setHours(parseInt(hours));
-    date.setMinutes(parseInt(minutes));
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
-
-  const formatTimeForAPI = (time: string) => {
-    // Convert from 24h format to 12h format with AM/PM
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -160,11 +158,7 @@ export default function Schedule() {
       const response = await createSchedule(
         selectedTerm.id,
         parseInt(selectedClassId),
-        {
-          ...formData,
-          start_time: formatTimeForAPI(formData.start_time),
-          end_time: formatTimeForAPI(formData.end_time)
-        }
+        formData
       );
 
       if (response.status) {
@@ -180,8 +174,7 @@ export default function Schedule() {
         setSubmitError(response.message || 'Failed to create schedule');
       }
     } catch (err) {
-      console.error('Error creating schedule:', err);
-      setSubmitError('Error creating schedule. Please try again.');
+      setSubmitError(scheduleErrorMessage(err, 'Error creating schedule. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -189,21 +182,11 @@ export default function Schedule() {
 
   const handleEdit = (schedule: ApiSchedule) => {
     setSelectedSchedule(schedule);
-    
-    // Convert from 12h format to 24h format
-    const convertTo24Hour = (time: string) => {
-      const [timePart, period] = time.split(' ');
-      const [hours, minutes] = timePart.split(':');
-      let hour = parseInt(hours);
-      if (period === 'PM' && hour !== 12) hour += 12;
-      if (period === 'AM' && hour === 12) hour = 0;
-      return `${hour.toString().padStart(2, '0')}:${minutes}`;
-    };
-    
+    setSubmitError(null);
     setFormData({
-      day_of_week: schedule.day_of_week,
-      start_time: convertTo24Hour(schedule.start_time),
-      end_time: convertTo24Hour(schedule.end_time)
+      day_of_week: schedule.day_of_week.toLowerCase(),
+      start_time: timeForInput(schedule.start_time),
+      end_time: timeForInput(schedule.end_time)
     });
     setSelectedClassId(schedule.class_id.toString());
     setIsEditModalOpen(true);
@@ -211,33 +194,26 @@ export default function Schedule() {
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSchedule || !selectedTerm || !selectedClassId) return;
+    if (!selectedSchedule) return;
 
     try {
       setIsSubmitting(true);
       setSubmitError(null);
 
       const response = await updateSchedule(
-        selectedTerm.id,
-        parseInt(selectedClassId),
-        selectedSchedule.id,
-        {
-          ...formData,
-          start_time: formatTimeForAPI(formData.start_time),
-          end_time: formatTimeForAPI(formData.end_time)
-        }
+        selectedSchedule,
+        formData
       );
 
       if (response.status) {
         setIsEditModalOpen(false);
         setSelectedSchedule(null);
-        fetchSchedules(selectedTerm.id);
+        fetchSchedules(selectedSchedule.class.term_id);
       } else {
         setSubmitError(response.message || 'Failed to update schedule');
       }
     } catch (err) {
-      console.error('Error updating schedule:', err);
-      setSubmitError('Error updating schedule. Please try again.');
+      setSubmitError(scheduleErrorMessage(err, 'Error updating schedule. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -245,31 +221,29 @@ export default function Schedule() {
 
   const handleDeleteClick = (schedule: ApiSchedule) => {
     setSelectedSchedule(schedule);
+    setDeleteError(null);
     setIsDeleteModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedSchedule || !selectedTerm || !selectedClassId) return;
+    if (!selectedSchedule) return;
 
     try {
       setIsDeleting(true);
       setDeleteError(null);
       const response = await deleteSchedule(
-        selectedTerm.id,
-        parseInt(selectedClassId),
-        selectedSchedule.id
+        selectedSchedule
       );
 
       if (response.status) {
         setIsDeleteModalOpen(false);
         setSelectedSchedule(null);
-        fetchSchedules(selectedTerm.id);
+        fetchSchedules(selectedSchedule.class.term_id);
       } else {
         setDeleteError(response.message || 'Failed to delete schedule');
       }
     } catch (err) {
-      console.error('Error deleting schedule:', err);
-      setDeleteError('Error deleting schedule. Please try again.');
+      setDeleteError(scheduleErrorMessage(err, 'Error deleting schedule. Please try again.'));
     } finally {
       setIsDeleting(false);
     }
@@ -281,11 +255,8 @@ export default function Schedule() {
     setDeleteError(null);
   };
 
-  const formatDayOfWeek = (day: string) => {
-    return day.charAt(0).toUpperCase() + day.slice(1);
-  };
 
-  const ScheduleForm = ({ isEdit = false }) => (
+  const renderScheduleForm = ({ isEdit = false } = {}) => (
     <form onSubmit={isEdit ? handleEditSubmit : handleCreateSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700">Term</label>
@@ -293,7 +264,7 @@ export default function Schedule() {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           value={selectedTerm?.id || ''}
           onChange={(e) => handleTermChange(e.target.value)}
-          disabled={isLoadingTerms || isSubmitting}
+          disabled={isLoadingTerms || isSubmitting || isEdit}
         >
           <option value="">Select a term</option>
           {terms.map(term => (
@@ -312,7 +283,7 @@ export default function Schedule() {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           value={selectedClassId}
           onChange={(e) => handleClassChange(e.target.value)}
-          disabled={!selectedTerm || isLoadingClasses || isSubmitting}
+          disabled={!selectedTerm || isLoadingClasses || isSubmitting || isEdit}
         >
           <option value="">Select a class</option>
           {classes.map(classItem => (
@@ -334,13 +305,13 @@ export default function Schedule() {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           disabled={isSubmitting}
         >
-          <option value="monday">Monday</option>
-          <option value="tuesday">Tuesday</option>
-          <option value="wednesday">Wednesday</option>
-          <option value="thursday">Thursday</option>
-          <option value="friday">Friday</option>
-          <option value="saturday">Saturday</option>
-          <option value="sunday">Sunday</option>
+          <option value="monday">دوشنبه</option>
+          <option value="tuesday">سه‌شنبه</option>
+          <option value="wednesday">چهارشنبه</option>
+          <option value="thursday">پنجشنبه</option>
+          <option value="friday">جمعه</option>
+          <option value="saturday">شنبه</option>
+          <option value="sunday">یکشنبه</option>
         </select>
       </div>
 
@@ -348,6 +319,7 @@ export default function Schedule() {
         <label className="block text-sm font-medium text-gray-700">Start Time</label>
         <input
           type="time"
+          step="1"
           name="start_time"
           value={formData.start_time}
           onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
@@ -361,6 +333,7 @@ export default function Schedule() {
         <label className="block text-sm font-medium text-gray-700">End Time</label>
         <input
           type="time"
+          step="1"
           name="end_time"
           value={formData.end_time}
           onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
@@ -418,7 +391,7 @@ export default function Schedule() {
                 className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 value={selectedTerm?.id || ''}
                 onChange={(e) => handleTermChange(e.target.value)}
-                disabled={isLoadingTerms}
+                disabled={isLoadingTerms || isSubmitting || isDeleting}
               >
                 <option value="">Select Term</option>
                 {terms.map(term => (
@@ -490,13 +463,13 @@ export default function Schedule() {
                         {schedule.class.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
-                        {formatDayOfWeek(schedule.day_of_week)}
+                        {schedule.display?.day_of_week ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatTime(schedule.start_time)}
+                        {schedule.display?.start_time ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatTime(schedule.end_time)}
+                        {schedule.display?.end_time ?? '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
                         <button 
@@ -535,7 +508,7 @@ export default function Schedule() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <ScheduleForm />
+            {renderScheduleForm()}
           </div>
         </div>
       )}
@@ -554,7 +527,7 @@ export default function Schedule() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <ScheduleForm isEdit />
+            {renderScheduleForm({ isEdit: true })}
           </div>
         </div>
       )}
@@ -581,7 +554,7 @@ export default function Schedule() {
             )}
 
             <p className="mb-6 text-gray-600">
-              Are you sure you want to delete the schedule for {selectedSchedule.class.name} on {formatDayOfWeek(selectedSchedule.day_of_week)}? 
+              Are you sure you want to delete the schedule for {selectedSchedule.class.name} on {selectedSchedule.display?.day_of_week ?? '—'}?
               This action cannot be undone.
             </p>
 

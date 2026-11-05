@@ -1,4 +1,6 @@
-export interface ApiScheduleClass {
+import type { CalendarPresentation } from './calendar';
+
+export interface ApiScheduleClass extends CalendarPresentation {
     id: number;
     course_id: number;
     teacher_id: number;
@@ -14,7 +16,7 @@ export interface ApiScheduleClass {
     endRegistration_Date: string;
 }
 
-export interface ApiSchedule {
+export interface ApiSchedule extends CalendarPresentation {
     id: number;
     class_id: number;
     day_of_week: string;
@@ -41,6 +43,12 @@ export interface ApiScheduleFormData {
     day_of_week: string;
     start_time: string;
     end_time: string;
+}
+
+export interface DeleteScheduleResponse {
+    status: boolean;
+    message: string;
+    schedule: null;
 }
 
     

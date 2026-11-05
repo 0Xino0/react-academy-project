@@ -92,10 +92,10 @@ export default function Payment() {
                             {debt.registration.class.name}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(debt.registration.class.start_date).toLocaleDateString()}
+                            {debt.registration.class.display?.start_date ?? '—'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(debt.registration.class.end_date).toLocaleDateString()}
+                            {debt.registration.class.display?.end_date ?? '—'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             ${debt.total_amount}

@@ -1,6 +1,7 @@
 import { ApiStudent } from "./Students";
 import { ApiTeacher } from "./teachers";
-export interface ApiGradeClass{
+import type { CalendarPresentation } from './calendar';
+export interface ApiGradeClass extends CalendarPresentation {
     id: number;
     name: string;
     course_id: number;
