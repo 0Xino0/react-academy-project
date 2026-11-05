@@ -1,3 +1,5 @@
+import type { ApiUser } from './auth';
+
 export interface ApiTeacherUser {
     id: number;
     national_id: string;
@@ -12,13 +14,13 @@ export interface ApiTeacherUser {
 export interface ApiTeacher {
     id: number;
     user_id: number;
-    salary: number;
-    resume: string;
+    salary: number | string | null;
+    resume: string | null;
     deleted_at: string | null; 
     created_at: string;
     updated_at: string;
-    bio: string;
-    degree: string; 
+    bio: string | null;
+    degree: string | null;
     user: ApiTeacherUser; 
 }
 
@@ -41,7 +43,9 @@ export interface TeacherRegistrationData {
 export interface TeacherRegistrationResponse {
     status: boolean;
     message: string;
-    data: ApiTeacher;
+    data: ApiUser;
+    role: ApiUser['roles'][number]['name'][];
+    teacher: Omit<ApiTeacher, 'user'>;
 }
 
 export interface TeacherUpdateData {

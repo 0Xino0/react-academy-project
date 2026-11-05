@@ -12,10 +12,10 @@ export interface ApiStudentUser {
 export interface ApiStudent {
     id: number;
     user_id: number;
-    father_name: string;
-    father_phone: string;
-    mother_name: string;
-    mother_phone: string;
+    father_name: string | null;
+    father_phone: string | null;
+    mother_name: string | null;
+    mother_phone: string | null;
     deleted_at: string | null;
     created_at: string;
     updated_at: string;

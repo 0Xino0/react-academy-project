@@ -5,6 +5,7 @@ import { register } from '../services/api'; // register returns AuthApiResponse
 import toast from 'react-hot-toast';
 import { UserPlus } from 'lucide-react';
 import { User as AppUser } from '../types/auth'; // Internal User interface
+import axios from 'axios';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -70,14 +71,16 @@ export default function Register() {
       navigate('/main-panel'); // Or '/login'
     } catch (error) {
       console.error('Register Page Submit Error:', error);
-      // Try to extract error message from error object, fallback to default
-      const errorMessage =
-        (typeof error === 'object' &&
-          error !== null &&
-          // @ts-expect-error: may not exist, but we want to try
-          error.response?.data?.message) ||
-        'Registration failed. Please try again.';
-      toast.error(errorMessage);
+      if (axios.isAxiosError<{ message?: string; errors?: Record<string, string[]> }>(error)) {
+        const errors = error.response?.data?.errors;
+        if (error.response?.status === 422 && errors) {
+          Object.values(errors).flat().forEach(message => toast.error(message));
+        } else {
+          toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
+        }
+      } else {
+        toast.error('Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,6 @@
+import type { ApiStudent } from './Students';
+import type { ApiTeacher as TeacherProfile } from './teachers';
+
 // Interface for the 'role' object nested within the API's user object
 export interface ApiUserRole {
   id: number;
@@ -14,6 +17,8 @@ export interface ApiUser {
   phone: string;
   email: string;
   roles: ApiUserRole[]; // The roles are an array of objects
+  student?: Omit<ApiStudent, 'user'> | null;
+  teacher?: Omit<TeacherProfile, 'user'> | null;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +28,7 @@ export interface AuthApiResponse {
   status: string;
   access_token: string;
   token_type: string;
+  expires_in: number;
   user: ApiUser;
 }
 
