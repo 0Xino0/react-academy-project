@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { useSession } from '../hooks/useSession';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -7,15 +8,13 @@ interface PrivateRouteProps {
 
 export default function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
   const location = useLocation();
-  const token = localStorage.getItem('token');
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const session = useSession();
 
-  if (!token || !user) {
+  if (!session) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && !allowedRoles.includes(session.user.role)) {
     return <Navigate to="/unauthorized" replace />;
   }
 

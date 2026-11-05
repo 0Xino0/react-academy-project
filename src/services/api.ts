@@ -1,4 +1,5 @@
-import axios from 'axios';
+import { createHttpClient } from './http';
+import { sessionStore } from './session';
 // Import AuthApiResponse (which is now updated) and the internal User types
 import { AuthApiResponse, LoginCredentials, RegisterData } from '../types/auth';
 import { ApiTeachersResponse, TeacherDeleteResponse, TeacherRegistrationData, TeacherRegistrationResponse, TeacherUpdateData, TeacherUpdateResponse } from '../types/teachers';
@@ -13,78 +14,22 @@ import { ApiGradeResponse, ApiGradesResponse } from '../types/Grades';
 import { DeleteRegistrationResponse } from '../types/Registrations';
 import { ApiDebtResponse } from '../types/Debts';
 
-const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api/v1',
+const { api, auth, logout: signOut } = createHttpClient({
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1',
+  store: sessionStore,
 });
 
-// Add token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token'); // This token will be the 'access_token'
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Handle token refresh
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // Check if the response status is 401 (Unauthorized) and it's not a retry
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        // Attempt to refresh the token using the refresh endpoint
-        const { data: refreshData } = await api.post<AuthApiResponse>('/auth/refresh');
-        const { access_token, user } = refreshData;
-
-        // Save the new token to localStorage
-        localStorage.setItem('token', access_token);
-
-        // Store the updated user info (including role)
-        const simplifiedUser = {
-          id: user.id,
-          email: user.email,
-          firstName: user.first_name,
-          lastName: user.last_name,
-          // If using Spatie and @roles is an array:
-          role: user.roles[0].name as 'manager' | 'student' | 'teacher',
-        };
-        localStorage.setItem('user', JSON.stringify(simplifiedUser));
-
-        // Update the Authorization header for the original request
-        originalRequest.headers.Authorization = `Bearer ${access_token}`;
-
-        // Retry the original request with the new token
-        return api(originalRequest);
-      } catch (_err) {
-        // If refresh fails, clear session and redirect to login page
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
-        return Promise.reject(_err);
-      }
-    }
-
-    // If not 401 or retry already attempted, just reject the error
-    return Promise.reject(error);
-  }
-);
-
+export const logout = signOut;
 
 // Login function returns the API response structure
 export const login = async (credentials: LoginCredentials): Promise<AuthApiResponse> => {
-  const response = await api.post<AuthApiResponse>('/auth/login', credentials);
+  const response = await auth.post<AuthApiResponse>('/auth/login', credentials);
   return response.data;
 };
 
 // Register function returns the API response structure
 export const register = async (data: RegisterData): Promise<AuthApiResponse> => {
-  const response = await api.post<AuthApiResponse>('/auth/register', data);
+  const response = await auth.post<AuthApiResponse>('/auth/register', data);
   return response.data;
 };
 

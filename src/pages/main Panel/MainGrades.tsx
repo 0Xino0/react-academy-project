@@ -1,12 +1,12 @@
 // src/pages/main Panel/MainGrades.tsx
+import { useSession } from '../../hooks/useSession';
 import TeacherGrades from '../../components/TeacherGrades';
 import StudentGrades from '../../components/StudentGrades';
 import Navbar from '../../components/Navbar';
 import UserSidebar from '../../components/UserSidebar';
 
 const MainGrades = () => {
-  const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = useSession()?.user;
 
   return (
     <div className="min-h-screen bg-gray-50">

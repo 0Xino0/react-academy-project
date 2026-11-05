@@ -1,11 +1,10 @@
 import { Home, BookOpen, GraduationCap, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useSession } from '../hooks/useSession';
 
 export default function UserSidebar() {
   const navigate = useNavigate();
-  // Get user from localStorage
-  const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = useSession()?.user;
   const isStudent = user?.role === 'student';
 
   return (

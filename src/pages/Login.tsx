@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
 import toast from 'react-hot-toast';
 import { LogIn } from 'lucide-react';
-import { User as AppUser } from '../types/auth'; // Internal User interface
+import { sessionStore } from '../services/session';
 import axios, { AxiosError } from 'axios';
 
 export default function Login() {
@@ -23,37 +23,8 @@ export default function Login() {
       const apiResponse = await login(formData); // Receives AuthApiResponse
       // console.log('Login API Raw Response:', apiResponse);
 
-      localStorage.setItem('token', apiResponse.access_token);
-
-      // Extract the role from the user.roles array
-      let userRole: AppUser['role'] | undefined = undefined;
-      if (apiResponse.user && apiResponse.user.roles && apiResponse.user.roles.length > 0) {
-        // Assuming the first role in the array is the primary role
-        userRole = apiResponse.user.roles[0].name as AppUser['role'];
-      }
-
-      if (!userRole) {
-        toast.error('User role could not be determined from API response.');
-        setLoading(false);
-        return;
-      }
-
-      const appUser: AppUser = {
-        id: String(apiResponse.user.id),
-        email: apiResponse.user.email,
-        firstName: apiResponse.user.first_name,
-        lastName: apiResponse.user.last_name,
-        role: userRole,
-      };
-      
-      localStorage.setItem('user', JSON.stringify(appUser));
-      // console.log('Stored AppUser:', appUser);
-
-      if (appUser.role === 'manager') {
-        navigate('/admin-dashboard'); // Or your manager dashboard route
-      } else {
-        navigate('/main-panel');
-      }
+      const session = sessionStore.saveAuth(apiResponse);
+      navigate(session.user.role === 'manager' ? '/admin-dashboard' : '/main-panel', { replace: true });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
@@ -97,7 +68,7 @@ export default function Login() {
         const errorMessage = (axiosError.response?.data as { message?: string })?.message || 'Login failed';
         toast.error(errorMessage);
       } else {
-        toast.error('Unexpected error. Please try again.');
+        toast.error(error instanceof Error ? error.message : 'Unexpected error. Please try again.');
       }
       console.error('Login error:', error);
     } finally {

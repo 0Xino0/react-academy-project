@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { register } from '../services/api'; // register returns AuthApiResponse
 import toast from 'react-hot-toast';
 import { UserPlus } from 'lucide-react';
-import { User as AppUser } from '../types/auth'; // Internal User interface
+import { sessionStore } from '../services/session';
 import axios from 'axios';
 
 export default function Register() {
@@ -41,34 +41,9 @@ export default function Register() {
       // console.log('Register API Raw Response:', apiResponse);
 
       // Store token and transformed user data
-      localStorage.setItem('token', apiResponse.access_token);
-
-      let userRole: AppUser['role'] | undefined = undefined;
-      if (apiResponse.user && apiResponse.user.roles && apiResponse.user.roles.length > 0) {
-        userRole = apiResponse.user.roles[0].name as AppUser['role'];
-      }
-
-      if (!userRole) {
-        toast.error('User role could not be determined from API response after registration.');
-        setLoading(false);
-        return;
-      }
-
-      const appUser: AppUser = {
-        id: String(apiResponse.user.id),
-        email: apiResponse.user.email,
-        firstName: apiResponse.user.first_name,
-        lastName: apiResponse.user.last_name,
-        role: userRole,
-      };
-      
-      localStorage.setItem('user', JSON.stringify(appUser));
-      console.log('Stored AppUser after registration:', appUser);
-      
-      // Navigate after successful registration
-      // Decide where to navigate: directly to a panel, or to login page
-      toast.success('Registration successful!'); // Optional success message
-      navigate('/main-panel'); // Or '/login'
+      sessionStore.saveAuth(apiResponse);
+      toast.success('Registration successful!');
+      navigate('/main-panel', { replace: true });
     } catch (error) {
       console.error('Register Page Submit Error:', error);
       if (axios.isAxiosError<{ message?: string; errors?: Record<string, string[]> }>(error)) {
@@ -79,7 +54,7 @@ export default function Register() {
           toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
         }
       } else {
-        toast.error('Registration failed. Please try again.');
+        toast.error(error instanceof Error ? error.message : 'Registration failed. Please try again.');
       }
     } finally {
       setLoading(false);

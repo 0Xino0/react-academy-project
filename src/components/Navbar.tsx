@@ -1,15 +1,27 @@
 import { LogOut, User } from 'lucide-react';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useSession } from '../hooks/useSession';
+import { sessionStore } from '../services/session';
+import { logout } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = useSession()?.user;
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+    } catch {
+      toast.error('Signed out on this device. Server sign-out could not be confirmed.');
+    } finally {
+      if (!sessionStore.getSnapshot()) navigate('/login', { replace: true });
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -35,6 +47,7 @@ export default function Navbar() {
               
               <button
                 onClick={handleLogout}
+                disabled={loggingOut}
                 className="flex items-center space-x-1 px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
               >
                 <LogOut size={18} />

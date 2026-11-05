@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSession } from '../../hooks/useSession';
 import { DollarSign } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import UserSidebar from '../../components/UserSidebar';
@@ -37,8 +38,7 @@ export default function Payment() {
     fetchDebts();
   }, []);
 
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = useSession()?.user;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,7 +50,7 @@ export default function Payment() {
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Student Payment Details</h1>
               <p className="mt-2 text-gray-600">
-                Manage payments for student: {user?.first_name} {user?.last_name}
+                Manage payments for student: {user?.firstName} {user?.lastName}
               </p>
             </div>
 

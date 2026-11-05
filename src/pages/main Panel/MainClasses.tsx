@@ -1,21 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useSession } from '../../hooks/useSession';
 import Navbar from '../../components/Navbar';
 import UserSidebar from '../../components/UserSidebar';
 import TeacherClasses from '../../components/TeacherClasses';
 import StudentClasses from '../../components/StudentClasses';
 
 export default function MainClasses() {
-  const [userRole, setUserRole] = useState<'teacher' | 'student' | null>(null);
-
-  useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      if (user.role === 'teacher' || user.role === 'student') {
-        setUserRole(user.role);
-      }
-    }
-  }, []);
+  const userRole = useSession()?.user.role;
 
   return (
     <div className="min-h-screen bg-gray-50">
