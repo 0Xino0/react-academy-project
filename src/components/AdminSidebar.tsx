@@ -11,6 +11,10 @@ export default function AdminSidebar() {
       </div>
       
       <nav className="space-y-1">
+        <button onClick={() => navigate('/admin/registration-policy')}
+          className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50">
+          <BookOpen className="w-5 h-5 mr-3" /> Enrollment policy
+        </button>
       <button 
           onClick={() => navigate('/admin-dashboard')}
           className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50"

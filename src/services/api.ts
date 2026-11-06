@@ -3,6 +3,8 @@ import { sessionStore } from './session';
 import { createCoursesApi } from './courses';
 import { createSchedulesApi } from './schedules';
 import { createAcademicsApi } from './academics';
+import { createRegistrationsApi } from './registrations';
+import { createPaymentsApi } from './payments';
 import { withCalendarDisplay } from './calendar';
 // Import AuthApiResponse (which is now updated) and the internal User types
 import { AuthApiResponse, LoginCredentials, RegisterData } from '../types/auth';
@@ -10,8 +12,6 @@ import { ApiTeachersResponse, TeacherDeleteResponse, TeacherRegistrationData, Te
 import { ClassesResponse, ClassesResponseForStudent } from '../types/classes';
 import { ApiStudentsResponse, DeleteStudentResponse } from '../types/Students';
 import { ApiGradeResponse, ApiGradesResponse } from '../types/Grades';
-import { DeleteRegistrationResponse } from '../types/Registrations';
-import { ApiDebtResponse } from '../types/Debts';
 
 const { api, auth, logout: signOut } = createHttpClient({
   baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1',
@@ -19,6 +19,9 @@ const { api, auth, logout: signOut } = createHttpClient({
 });
 
 export const logout = signOut;
+
+export const { getAvailableClasses, enrollInClass, cancelRegistration, getCancellationPolicy, updateCancellationPolicy } = createRegistrationsApi(api);
+export const { getDebtsOfStudent, recordPayment } = createPaymentsApi(api);
 
 export const {
   getTerms, createTerm, updateTerm, deleteTerm,
@@ -135,16 +138,8 @@ export const getClassesForStudent = async(term_id: number): Promise<ClassesRespo
 
 
 // delete registration api functions
-export const deleteRegistration = async(class_id: number, term_id: number, registration_id: number): Promise<DeleteRegistrationResponse> => {
-  const response = await api.delete<DeleteRegistrationResponse>(`/terms/${term_id}/classes/${class_id}/registrations/${registration_id}`);
-  return withCalendarDisplay(response.data);
-};
 
 // debts list api functions
-export const getDebtsOfStudent = async(): Promise<ApiDebtResponse> => {
-  const response = await api.get<ApiDebtResponse>(`/me/students/debts`);
-  return withCalendarDisplay(response.data);
-};
 
 
 

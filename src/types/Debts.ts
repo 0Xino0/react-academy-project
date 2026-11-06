@@ -25,15 +25,19 @@ export interface ApiRegistrationDebt{
     created_at: string;
     updated_at: string;
     student: ApiStudent;
+    cancelled_at: string | null;
     class: ApiRegistrationClassDebt;
 }
 
 export interface ApiDebt{
     id: number;
     registration_id: number;
-    total_amount: number;
-    paid_amount: number;
-    remaining_amount: number;
+    total_amount: string;
+    paid_amount: string;
+    remaining_amount: string;
+    waived_amount: string;
+    is_paid: boolean;
+    is_settled: boolean;
     created_at: string;
     updated_at: string;
     registration: ApiRegistrationDebt;
@@ -44,8 +48,9 @@ export interface ApiDebtResponse{
     status: boolean;
     message: string;
     data?: ApiDebt[];
-    remaining_debt?: number;
-    paid_debt?: number;
+    remaining_debt?: string;
+    paid_debt?: string;
+    waived_debt?: string;
     error?: string;
 }
 

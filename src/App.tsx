@@ -18,6 +18,7 @@ import MainClasses from './pages/main Panel/MainClasses';
 import MainGrades from './pages/main Panel/MainGrades';
 import MainPayment from './pages/main Panel/MainPayment';
 import RecordGrades from './pages/main Panel/RecordGrades';
+import RegistrationPolicy from './pages/Admin panel/RegistrationPolicy';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/admin/registration-policy" element={<PrivateRoute allowedRoles={['manager']}><RegistrationPolicy /></PrivateRoute>} />
         <Route
           path="/admin-dashboard"
           element={

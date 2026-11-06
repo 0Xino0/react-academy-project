@@ -4,10 +4,11 @@ export interface Registration {
     class_id: number;
     created_at: string;
     updated_at: string;
+    cancelled_at: string | null;
 }
 
 export interface DeleteRegistrationResponse {
     status: boolean;
     message: string;
-    error: string;
+    error: string | null;
 }

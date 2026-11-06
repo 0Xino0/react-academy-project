@@ -3,9 +3,11 @@ import { Calendar, X, AlertTriangle } from 'lucide-react';
 import { Term } from '../types/Terms';
 import { ClassForStudent } from '../types/classes';
 import { ApiSchedule } from '../types/Schedule';
-import { getTerms, getClassesForStudent, getSchedulesForStudent, deleteRegistration } from '../services/api';
+import { enrollmentError } from '../services/registrations';
+import { getTerms, getClassesForStudent, getSchedulesForStudent, cancelRegistration, getCancellationPolicy } from '../services/api';
 
 export default function StudentClasses() {
+  const [requiresSettlement, setRequiresSettlement] = useState<boolean | null>(null);
   const [selectedTerm, setSelectedTerm] = useState<number | ''>('');
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -34,30 +36,43 @@ export default function StudentClasses() {
       }
     };
     fetchTerms();
+    let active = true;
+    getCancellationPolicy().then(response => { if (active) setRequiresSettlement(response.policy.cancellation_requires_settlement); }).catch(() => {});
+    return () => { active = false; };
   }, []);
 
   // Fetch classes when term changes
   useEffect(() => {
+    let active = true;
+    setClasses([]);
+    setSchedules([]);
+    setSelectedClass(null);
+    setIsDeleteModalOpen(false);
+    setIsScheduleModalOpen(false);
+    setError(null);
     const fetchClasses = async () => {
-      if (!selectedTerm) return;
+      if (!selectedTerm) { setLoading(false); return; }
       
       setLoading(true);
       setError(null);
       try {
         const response = await getClassesForStudent(selectedTerm);
+        if (!active) return;
         if (response.status) {
           setClasses(response.classes);
         } else {
           setError(response.message);
         }
       } catch (error) {
+        if (!active) return;
         setError('Failed to fetch classes. Please try again later.');
         console.error('Error fetching classes:', error);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchClasses();
+    return () => { active = false; };
   }, [selectedTerm]);
 
   // Fetch schedules when modal opens
@@ -84,12 +99,13 @@ export default function StudentClasses() {
   };
 
   const handleDeleteClick = (class_: ClassForStudent) => {
+    setError(null);
     setSelectedClass(class_);
     setIsDeleteModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedClass || !selectedTerm) return;
+    if (!selectedClass) return;
 
     // Get the first registration from the registrations array
     const registration = selectedClass.registrations[0];
@@ -103,23 +119,19 @@ export default function StudentClasses() {
     setDeleteLoading(true);
     setError(null);
     try {
-      const response = await deleteRegistration(
-        selectedClass.id,
-        selectedTerm,
-        registration.id
-      );
+      const response = await cancelRegistration(selectedClass);
       
       if (response.status) {
         // Remove the class from the list
-        setClasses(classes.filter(c => c.id !== selectedClass.id));
+        setClasses(current => current.filter(c => c.id !== selectedClass.id));
+        setSchedules([]);
         setIsDeleteModalOpen(false);
         setSelectedClass(null);
       } else {
-        setError(response.message || response.error || 'Failed to remove class');
+        setError(response.message || 'Failed to remove class');
       }
     } catch (error) {
-      setError('Failed to remove class. Please try again later.');
-      console.error('Error removing class:', error);
+      setError(enrollmentError(error, 'Enrollment could not be cancelled.'));
     } finally {
       setDeleteLoading(false);
     }
@@ -201,7 +213,7 @@ export default function StudentClasses() {
                         onClick={() => handleDeleteClick(class_)}
                         className="text-red-600 hover:text-red-900"
                       >
-                        Remove
+                        Cancel enrollment
                       </button>
                     </td>
                   </tr>
@@ -292,13 +304,15 @@ export default function StudentClasses() {
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center mb-4">
               <AlertTriangle className="w-6 h-6 text-yellow-500 mr-2" />
-              <h3 className="text-lg font-medium">Confirm Class Removal</h3>
+              <h3 className="text-lg font-medium">Cancel enrollment</h3>
             </div>
             
             <p className="text-gray-500 mb-4">
-              Are you sure you want to remove {selectedClass.name} from your classes? This action cannot be undone.
+              Cancel enrollment in {selectedClass.name}? Enrollment, payment and grade records will be retained.
             </p>
 
+            <p className="text-gray-600 mb-4">{requiresSettlement === true ? 'Full settlement is required before cancellation.' : requiresSettlement === false ? 'The unpaid balance will be waived. Previous payments remain in your history.' : 'The academy cancellation policy will be checked before confirming.'}</p>
+            {error && <p role="alert" className="text-red-700 mb-4">{error}</p>}
             <div className="mt-6 flex space-x-3">
               <button
                 onClick={() => {
@@ -315,7 +329,7 @@ export default function StudentClasses() {
                 disabled={deleteLoading}
                 className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed"
               >
-                {deleteLoading ? 'Removing...' : 'Remove Class'}
+                {deleteLoading ? 'Cancelling...' : 'Confirm cancellation'}
               </button>
             </div>
           </div>

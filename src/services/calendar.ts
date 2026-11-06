@@ -4,7 +4,7 @@ const empty = '—';
 const digits = '۰۱۲۳۴۵۶۷۸۹';
 const persianDigits = (value: string) => value.replace(/[0-9]/g, digit => digits[Number(digit)]);
 const dateFields = new Set(['start_date', 'end_date', 'startRegistration_Date', 'endRegistration_Date', 'payment_date']);
-const timestampFields = new Set(['created_at', 'updated_at', 'deleted_at', 'paid_at']);
+const timestampFields = new Set(['created_at', 'updated_at', 'deleted_at', 'cancelled_at', 'paid_at']);
 const timeFields = new Set(['start_time', 'end_time']);
 const weekdays: Record<string, string> = {
   saturday: 'شنبه', sunday: 'یکشنبه', monday: 'دوشنبه', tuesday: 'سه‌شنبه',
@@ -71,7 +71,8 @@ export function withCalendarDisplay<T>(value: T): T {
     if (key === 'display') continue;
     result[key] = withCalendarDisplay(item);
     if (dateFields.has(key)) display[key as CalendarField] = persianDate(item);
-    else if (timestampFields.has(key)) display[key as CalendarField] = persianTimestamp(item);
+    else if (timestampFields.has(key)) display[key as CalendarField] = key === 'paid_at' && typeof item === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item)
+      ? persianDate(item) : persianTimestamp(item);
     else if (timeFields.has(key)) display[key as CalendarField] = persianTime(item);
     else if (key === 'day_of_week') display.day_of_week = persianWeekday(item);
   }
