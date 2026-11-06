@@ -4,7 +4,7 @@ import Navbar from '../../components/Navbar';
 import AdminSidebar from '../../components/AdminSidebar';
 import { getTerms, createTerm, updateTerm, deleteTerm } from '../../services/api';
 import { Term, TermFormData } from '../../types/Terms';
-import { AxiosError } from 'axios';
+import { academicErrorMessage } from '../../services/academics';
 
 export default function Terms() {
   const [terms, setTerms] = useState<Term[]>([]);
@@ -69,7 +69,7 @@ export default function Terms() {
     setFormError(null);
 
     try {
-      const response = await updateTerm(selectedTerm.id, formData as Term);
+      const response = await updateTerm(selectedTerm.id, formData);
       if (response.status) {
         // Close modal and refresh terms list
         setIsEditModalOpen(false);
@@ -87,17 +87,7 @@ export default function Terms() {
         setFormError(response.message || 'Failed to update term');
       }
     } catch (err) {
-      const error = err as AxiosError<{message?: string, errors?: Record<string, string[]>}>;
-      if (error.response?.data?.message) {
-        setFormError(error.response.data.message);
-      } else if (error.response?.data?.errors) {
-        // Handle validation errors
-        const errorMessages = Object.values(error.response.data.errors).flat();
-        setFormError(errorMessages.join(', '));
-      } else {
-        setFormError('An error occurred while updating the term');
-      }
-      console.error('Error updating term:', err);
+      setFormError(academicErrorMessage(err, 'An error occurred while updating the term'));
     } finally {
       setIsSubmitting(false);
     }
@@ -109,7 +99,7 @@ export default function Terms() {
     setFormError(null);
 
     try {
-      const response = await createTerm(formData as Term);
+      const response = await createTerm(formData);
       if (response.status) {
         // Close modal and refresh terms list
         setIsAddModalOpen(false);
@@ -126,17 +116,7 @@ export default function Terms() {
         setFormError(response.message || 'Failed to create term');
       }
     } catch (err) {
-      const error = err as AxiosError<{message?: string, errors?: Record<string, string[]>}>;
-      if (error.response?.data?.message) {
-        setFormError(error.response.data.message);
-      } else if (error.response?.data?.errors) {
-        // Handle validation errors
-        const errorMessages = Object.values(error.response.data.errors).flat();
-        setFormError(errorMessages.join(', '));
-      } else {
-        setFormError('An error occurred while creating the term');
-      }
-      console.error('Error creating term:', err);
+      setFormError(academicErrorMessage(err, 'An error occurred while creating the term'));
     } finally {
       setIsSubmitting(false);
     }
@@ -165,13 +145,7 @@ export default function Terms() {
         setDeleteError(response.message || 'Failed to delete term');
       }
     } catch (err) {
-      const error = err as AxiosError<{message?: string}>;
-      if (error.response?.data?.message) {
-        setDeleteError(error.response.data.message);
-      } else {
-        setDeleteError('An error occurred while deleting the term');
-      }
-      console.error('Error deleting term:', err);
+      setDeleteError(academicErrorMessage(err, 'An error occurred while deleting the term'));
     } finally {
       setIsSubmitting(false);
     }

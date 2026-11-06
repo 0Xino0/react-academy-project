@@ -185,7 +185,7 @@ export default function StudentClasses() {
                       {class_.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {class_.teacher.user.first_name} {class_.teacher.user.last_name}
+                      {class_.teacher ? `${class_.teacher.user.first_name} ${class_.teacher.user.last_name}` : 'Unavailable teacher'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       ${class_.tuition_fee}

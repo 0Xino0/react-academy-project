@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test tests/session.test.ts tests/http.test.ts tests/academics/courses.test.ts tests/scheduling/schedules.test.ts tests/localization/calendar.test.ts"
+    "test": "node --test tests/session.test.ts tests/http.test.ts tests/academics/courses.test.ts tests/academics/editing.test.ts tests/scheduling/schedules.test.ts tests/localization/calendar.test.ts"
   },
   "dependencies": {
     "axios": "^1.9.0",

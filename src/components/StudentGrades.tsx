@@ -123,7 +123,7 @@ const StudentGrades = () => {
               {grades.map(grade => (
                 <tr key={grade.id}>
                   <td className="px-6 py-4 border-b">{grade.class.name}</td>
-                  <td className="px-6 py-4 border-b">{`${grade.class.teacher.user.first_name} ${grade.class.teacher.user.last_name}`}</td>
+                  <td className="px-6 py-4 border-b">{grade.class.teacher ? `${grade.class.teacher.user.first_name} ${grade.class.teacher.user.last_name}` : 'Unavailable teacher'}</td>
                   <td className="px-6 py-4 border-b">{grade.class.display?.start_date ?? '—'}</td>
                   <td className="px-6 py-4 border-b">{grade.class.display?.end_date ?? '—'}</td>
                   <td className="px-6 py-4 border-b">{grade.grade}</td>

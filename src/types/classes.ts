@@ -20,7 +20,8 @@ export interface Class extends CalendarPresentation {
     updated_at: string;
     course: Course;
     term: Term;
-    teacher: ApiTeacher;
+    teacher: ApiTeacher | null;
+    registrations_count: number;
 }
 
 export interface ClassForStudent extends CalendarPresentation {
@@ -39,7 +40,8 @@ export interface ClassForStudent extends CalendarPresentation {
     updated_at: string;
     course: Course;
     term: Term;
-    teacher: ApiTeacher;
+    teacher: ApiTeacher | null;
+    registrations_count: number;
     registrations: Registration[];
 }
 
@@ -71,7 +73,7 @@ export interface ClassFormData {
 export interface DeleteClassResponse {
     status: boolean;
     message: string;
-    error: string;
+    error: string | null;
 }
 
 export interface ClassesResponseForStudent {

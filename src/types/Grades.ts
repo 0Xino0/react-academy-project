@@ -15,7 +15,7 @@ export interface ApiGradeClass extends CalendarPresentation {
     endRegistration_Date: string;
     created_at: string;
     updated_at: string;
-    teacher: ApiTeacher;
+    teacher: ApiTeacher | null;
 }
 
 export interface ApiGrade {

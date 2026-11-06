@@ -1,4 +1,4 @@
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
 import { PlusCircle, Pencil, Trash2, X } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import AdminSidebar from '../../components/AdminSidebar';
@@ -8,6 +8,7 @@ import { Class, ClassFormData } from '../../types/classes';
 import { Course } from '../../types/Courses';
 import { ApiTeacher } from '../../types/teachers';
 import toast from 'react-hot-toast';
+import { academicErrorMessage } from '../../services/academics';
 
 interface ClassFormProps {
   formData: {
@@ -27,6 +28,8 @@ interface ClassFormProps {
   courses: Course[];
   teachers: ApiTeacher[];
   isSubmitting: boolean;
+  isEditing?: boolean;
+  minimumCapacity?: number;
   formError: string | null;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
@@ -39,6 +42,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
   courses,
   teachers,
   isSubmitting,
+  isEditing = false,
+  minimumCapacity = 1,
   formError,
   onSubmit,
   onCancel
@@ -56,7 +61,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         value={formData.term_id}
         onChange={(e) => setFormData({ ...formData, term_id: e.target.value })}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isEditing}
       >
         <option value="">Select a term</option>
         {terms.map(term => (
@@ -139,6 +144,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
         <input
           type="number"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          min={minimumCapacity}
+          step="1"
           value={formData.capacity}
           onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
           disabled={isSubmitting}
@@ -149,6 +156,8 @@ const ClassForm: React.FC<ClassFormProps> = ({
         <input
           type="number"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          min="0"
+          step="0.01"
           value={formData.tuition_fee}
           onChange={(e) => setFormData({ ...formData, tuition_fee: e.target.value })}
           disabled={isSubmitting}
@@ -193,13 +202,15 @@ const ClassForm: React.FC<ClassFormProps> = ({
         className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Creating...' : 'Create Class'}
+        {isSubmitting ? 'Saving...' : isEditing ? 'Update Class' : 'Create Class'}
       </button>
     </div>
   </form>
 );
 
 export default function Classes() {
+  const classRequest = useRef(0);
+  const [loadingOptions, setLoadingOptions] = useState(false);
   const [terms, setTerms] = useState<Term[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [teachers, setTeachers] = useState<ApiTeacher[]>([]);
@@ -228,25 +239,28 @@ export default function Classes() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Class | null>(null);
 
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     if (!selectedTerm) return;
+    const request = ++classRequest.current;
 
     try {
       setIsLoading(true);
       setError(null);
       const response = await getClassesByTermId(selectedTerm.id);
+      if (request !== classRequest.current) return;
       if (response.status === true) {
         setClasses(response.classes);
       } else {
         setError(response.message || 'Failed to fetch classes');
       }
     } catch (err) {
+      if (request !== classRequest.current) return;
       setError('Failed to fetch classes. Please try again later.');
       console.error('Error fetching classes:', err);
     } finally {
-      setIsLoading(false);
+      if (request === classRequest.current) setIsLoading(false);
     }
-  };
+  }, [selectedTerm]);
 
   // Fetch terms on component mount
   useEffect(() => {
@@ -270,43 +284,33 @@ export default function Classes() {
     fetchTerms();
   }, []);
 
-  // Fetch courses and teachers when add modal opens
+  // Edit opened directly needs the same options as Add.
   useEffect(() => {
-    const fetchData = async () => {
-      if (!isAddModalOpen) return;
+    if (!isAddModalOpen && !isEditModalOpen) return;
+    let active = true;
+    setLoadingOptions(true);
+    setCourses([]);
+    setTeachers([]);
+    Promise.all([getCourses(), getTeachers()]).then(([courseResponse, teacherResponse]) => {
+      if (!active) return;
+      setCourses(courseResponse.data);
+      setTeachers(Array.isArray(teacherResponse.data) ? teacherResponse.data : []);
+    }).catch(error => {
+      if (active) setFormError(academicErrorMessage(error, 'Failed to load course and teacher options.'));
+    }).finally(() => {
+      if (active) setLoadingOptions(false);
+    });
+    return () => { active = false; };
+  }, [isAddModalOpen, isEditModalOpen]);
 
-      try {
-        setIsLoading(true);
-        setError(null);
-        const [coursesResponse, teachersResponse] = await Promise.all([
-          getCourses(),
-          getTeachers()
-        ]);
-
-        if (coursesResponse.status === true) {
-          setCourses(coursesResponse.data);
-        }
-        if (teachersResponse.status === true) {
-          setTeachers(teachersResponse.data);
-        }
-      } catch (err) {
-        setError('Failed to fetch required data. Please try again later.');
-        console.error('Error fetching data:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [isAddModalOpen]);
-
-  // Fetch classes when selected term changes
   useEffect(() => {
     fetchClasses();
-  }, [selectedTerm]);
+    return () => { classRequest.current += 1; };
+  }, [fetchClasses]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loadingOptions) return;
     
     try {
       setIsSubmitting(true);
@@ -336,7 +340,7 @@ export default function Classes() {
 
       if (isEditModalOpen && selectedClass) {
         // Update existing class
-        const response = await updateClass(selectedClass.id, classData);
+        const response = await updateClass(selectedClass, classData);
         if (response.status === true) {
           toast.success('Class updated successfully');
           await fetchClasses(); // Refresh classes list
@@ -373,8 +377,7 @@ export default function Classes() {
         }
       }
     } catch (err) {
-      setFormError('An error occurred. Please try again later.');
-      console.error('Error:', err);
+      setFormError(academicErrorMessage(err, 'An error occurred. Please try again later.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -382,6 +385,7 @@ export default function Classes() {
 
   const handleEdit = (classItem: Class) => {
     setSelectedClass(classItem);
+    setFormError(null);
     setFormData({
       name: classItem.name,
       course_id: classItem.course_id.toString(),
@@ -403,10 +407,10 @@ export default function Classes() {
   };
 
   const handleDelete = async () => {
-    if (!classToDelete || !selectedTerm) return;
+    if (!classToDelete) return;
 
     try {
-      const response = await deleteClass(classToDelete.id, selectedTerm.id);
+      const response = await deleteClass(classToDelete);
       if (response.status === true) {
         toast.success('Class deleted successfully');
         await fetchClasses(); // Refresh classes list
@@ -439,7 +443,7 @@ export default function Classes() {
                   const term = terms.find(t => t.id === parseInt(e.target.value));
                   if (term) setSelectedTerm(term);
                 }}
-                disabled={isLoading}
+                disabled={isLoading || isSubmitting || isAddModalOpen || isEditModalOpen || isDeleteModalOpen}
               >
                 {terms.map(term => (
                   <option key={term.id} value={term.id}>
@@ -462,10 +466,11 @@ export default function Classes() {
                   startRegistration_Date: '',
                   endRegistration_Date: ''
                 });
+                setFormError(null);
                 setIsAddModalOpen(true);
               }}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              disabled={isLoading}
+              disabled={isLoading || isSubmitting || isAddModalOpen || isEditModalOpen || isDeleteModalOpen}
             >
               <PlusCircle className="w-5 h-5 mr-2" />
               Add Class
@@ -525,7 +530,7 @@ export default function Classes() {
                         {classItem.course.title}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {`${classItem.teacher.user.first_name} ${classItem.teacher.user.last_name}`}
+                        {classItem.teacher ? `${classItem.teacher.user.first_name} ${classItem.teacher.user.last_name}` : 'Unavailable teacher'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {classItem.display?.start_date ?? '—'}
@@ -578,7 +583,7 @@ export default function Classes() {
               terms={terms}
               courses={courses}
               teachers={teachers}
-              isSubmitting={isSubmitting}
+              isSubmitting={isSubmitting || loadingOptions}
               formError={formError}
               onSubmit={handleSubmit}
               onCancel={() => {
@@ -618,7 +623,9 @@ export default function Classes() {
               terms={terms}
               courses={courses}
               teachers={teachers}
-              isSubmitting={isSubmitting}
+              isSubmitting={isSubmitting || loadingOptions}
+              isEditing
+              minimumCapacity={Math.max(1, selectedClass.registrations_count)}
               formError={formError}
               onSubmit={handleSubmit}
               onCancel={() => {
@@ -668,7 +675,7 @@ export default function Classes() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Teacher</h3>
-                  <p className="mt-1 text-sm text-gray-900">{`${selectedClass.teacher.user.first_name} ${selectedClass.teacher.user.last_name}`}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedClass.teacher ? `${selectedClass.teacher.user.first_name} ${selectedClass.teacher.user.last_name}` : 'Unavailable teacher'}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Capacity</h3>
