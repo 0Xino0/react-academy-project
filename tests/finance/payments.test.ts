@@ -2,16 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import axios from 'axios';
 import { createPaymentsApi } from '../../src/services/payments.ts';
-import type { ApiDebt } from '../../src/types/Debts.ts';
 import { response } from '../helpers.ts';
+import { invoice, ledger, payment } from './fixtures.ts';
 
-const debt = { id: 9 } as ApiDebt;
+const debt = invoice();
 
 test('a payment sends an exact decimal string and displays paid_at as a Persian date', async () => {
   let call: unknown;
   const api = createPaymentsApi(axios.create({ adapter: config => {
     call = [config.url, JSON.parse(config.data as string)];
-    return Promise.resolve(response(config, { status: true, data: { id: 2, debt_id: 9, amount: '0.10', paid_at: '2026-03-21' }, remaining_debt: '0.20' }));
+    return Promise.resolve(response(config, { status: true, data: payment(invoice({ paid_amount: '0.10', remaining_amount: '0.20' })),
+      remaining_debt: '0.20', is_paid: false, is_settled: false }));
   } }));
   const result = await api.recordPayment(debt, '0.10');
   assert.deepEqual(call, ['/debts/9/payments', { amount: '0.10' }]);
@@ -30,16 +31,15 @@ test('invalid zero, negative, scientific or overprecise amounts do not dispatch 
 test('a resolved but failed response or missing receipt cannot confirm a payment', async () => {
   for (const body of [{ status: false }, { status: true, data: {} }]) {
     const api = createPaymentsApi(axios.create({ adapter: config => Promise.resolve(response(config, body)) }));
-    await assert.rejects(api.recordPayment(debt, '1.00'), /not confirmed/);
+    await assert.rejects(api.recordPayment(debt, '0.10'), /not confirmed/);
   }
 });
 
 test('an empty ledger is valid and waiver remains distinct from payment', async () => {
   let empty = true;
-  const api = createPaymentsApi(axios.create({ adapter: config => Promise.resolve(response(config, {
-    status: true, data: empty ? [] : [{ id: 9, total_amount: '100.00', paid_amount: '20.00', remaining_amount: '0.00', waived_amount: '80.00', is_paid: false, is_settled: true }],
-    paid_debt: empty ? '0.00' : '20.00', waived_debt: empty ? '0.00' : '80.00', remaining_debt: '0.00',
-  })) }));
+  const api = createPaymentsApi(axios.create({ adapter: config => Promise.resolve(response(config, ledger(empty ? [] : [invoice({
+    total_amount: '100.00', paid_amount: '20.00', remaining_amount: '0.00', waived_amount: '80.00', is_paid: false, is_settled: true,
+  })]))) }));
   assert.deepEqual((await api.getDebtsOfStudent()).data, []);
   empty = false;
   const result = await api.getDebtsOfStudent();

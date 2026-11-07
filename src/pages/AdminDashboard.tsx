@@ -36,6 +36,7 @@ export default function AdminDashboard() {
               </button>
 
               {/* Financial affairs */}
+              <button onClick={() => navigate('/admin/financial')}>
               
               <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                 <img 
@@ -49,6 +50,7 @@ export default function AdminDashboard() {
               </div>
               
 
+              </button>
               {/* Creating class */}
               <button
               onClick={() => navigate('/admin/classes')}

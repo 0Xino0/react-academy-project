@@ -71,10 +71,10 @@ export default function AdminSidebar() {
           <GraduationCap className="w-5 h-5 mr-3" />
           Grades
         </button>
-        <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50">
+        <button onClick={() => navigate('/admin/financial')} className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50">
           <DollarSign className="w-5 h-5 mr-3" />
           Financial
-        </a>
+        </button>
       </nav>
     </div>
   );

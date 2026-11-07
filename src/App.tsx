@@ -19,6 +19,7 @@ import MainGrades from './pages/main Panel/MainGrades';
 import MainPayment from './pages/main Panel/MainPayment';
 import RecordGrades from './pages/main Panel/RecordGrades';
 import RegistrationPolicy from './pages/Admin panel/RegistrationPolicy';
+import Financial from './pages/Admin panel/Financial';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/admin/financial" element={<PrivateRoute allowedRoles={['manager']}><Financial /></PrivateRoute>} />
         <Route path="/admin/registration-policy" element={<PrivateRoute allowedRoles={['manager']}><RegistrationPolicy /></PrivateRoute>} />
         <Route
           path="/admin-dashboard"

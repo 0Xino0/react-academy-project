@@ -18,7 +18,7 @@ const { api, auth, logout: signOut } = createHttpClient({
 export const logout = signOut;
 
 export const { getAvailableClasses, enrollInClass, cancelRegistration, getCancellationPolicy, updateCancellationPolicy } = createRegistrationsApi(api);
-export const { getDebtsOfStudent, recordPayment } = createPaymentsApi(api);
+export const { getDebtsOfStudent, recordPayment, getDebts, getPayments, getPayment } = createPaymentsApi(api);
 
 export const {
   getTerms, createTerm, updateTerm, deleteTerm,

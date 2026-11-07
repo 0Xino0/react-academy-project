@@ -1,5 +1,7 @@
 import { ApiStudent } from "./Students";
 import type { CalendarPresentation } from './calendar';
+import type { Term } from './Terms';
+import type { PaymentSummary } from './Payments';
 
 export interface ApiRegistrationClassDebt extends CalendarPresentation {
     id: number;
@@ -13,12 +15,13 @@ export interface ApiRegistrationClassDebt extends CalendarPresentation {
     end_date: string;
     tuition_fee: string;
     capacity: number;
+    term: Pick<Term, 'id' | 'year' | 'season'>;
     startRegistration_Date: string;
     endRegistration_Date: string;
     
 }
 
-export interface ApiRegistrationDebt{
+export interface ApiRegistrationDebt extends CalendarPresentation {
     id: number;
     student_id: number;
     class_id: number;
@@ -29,7 +32,7 @@ export interface ApiRegistrationDebt{
     class: ApiRegistrationClassDebt;
 }
 
-export interface ApiDebt{
+export interface ApiDebtRecord extends CalendarPresentation {
     id: number;
     registration_id: number;
     total_amount: string;
@@ -44,13 +47,14 @@ export interface ApiDebt{
     
 }
 
-export interface ApiDebtResponse{
+export interface ApiDebt extends ApiDebtRecord { payments: PaymentSummary[] }
+
+export interface ApiDebtResponse {
     status: boolean;
     message: string;
-    data?: ApiDebt[];
-    remaining_debt?: string;
-    paid_debt?: string;
-    waived_debt?: string;
-    error?: string;
+    data: ApiDebt[];
+    original_total: string;
+    remaining_debt: string;
+    paid_debt: string;
+    waived_debt: string;
 }
-
