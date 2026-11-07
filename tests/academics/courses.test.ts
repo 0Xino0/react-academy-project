@@ -81,3 +81,63 @@ test('HTTP 404 remains an Axios error and is not turned into a successful course
   const api = createCoursesApi(axios.create({ adapter: config => rejectStatus(config, 404) }));
   await assert.rejects(api.deleteCourse(999999), error => axios.isAxiosError(error) && error.response?.status === 404);
 });
+
+test('invalid course IDs cannot dispatch detail, update or delete requests', async () => {
+  let calls = 0;
+  const api = createCoursesApi(axios.create({ adapter: config => {
+    calls++; return Promise.resolve(response(config, { status: true, data: course }));
+  } }));
+  for (const id of [0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    await assert.rejects(api.getCourse(id), /valid course/);
+    await assert.rejects(api.updateCourse(id, form), /valid course/);
+    await assert.rejects(api.deleteCourse(id), /valid course/);
+  }
+  assert.equal(calls, 0);
+});
+
+test('a successful detail or update for a different course is rejected', async () => {
+  const api = apiReturning({ status: true, data: { ...course, id: 5 } });
+  await assert.rejects(api.getCourse(4), /selected course/);
+  await assert.rejects(api.updateCourse(4, form), /selected course/);
+});
+
+test('unsafe server identifiers cannot enter course state', async () => {
+  const invalid = { ...course, id: Number.MAX_SAFE_INTEGER + 1 };
+  await assert.rejects(apiReturning({ status: true, data: [invalid] }).getCourses(), /Invalid course list/);
+  await assert.rejects(apiReturning({ status: true, data: invalid }).getCourse(4), /Invalid course response/);
+});
+
+test('course payload trims names and accepts the 255-character Latin and Persian boundary', async () => {
+  const sent: unknown[] = [];
+  const api = createCoursesApi(axios.create({ adapter: config => {
+    sent.push(JSON.parse(config.data as string));
+    return Promise.resolve(response(config, { status: true, data: course }));
+  } }));
+  for (const title of ['x'.repeat(255), 'ف'.repeat(255)]) {
+    await api.createCourse({ ...form, title: ' ' + title + ' ' });
+    await api.updateCourse(4, { ...form, title });
+  }
+  assert.deepEqual(sent, ['x'.repeat(255), 'x'.repeat(255), 'ف'.repeat(255), 'ف'.repeat(255)]
+    .map(title => ({ ...form, title })));
+});
+
+test('empty or overlong titles and invalid levels fail before any write request', async () => {
+  let calls = 0;
+  const api = createCoursesApi(axios.create({ adapter: config => {
+    calls++; return Promise.resolve(response(config, { status: true, data: course }));
+  } }));
+  for (const title of ['', '   ', 'x'.repeat(256), 'ف'.repeat(256)]) {
+    await assert.rejects(api.createCourse({ ...form, title }), /255 characters/);
+    await assert.rejects(api.updateCourse(4, { ...form, title }), /255 characters/);
+  }
+  await assert.rejects(api.createCourse({ ...form, level: 'Unknown' }), /valid course level/);
+  await assert.rejects(api.updateCourse(4, { ...form, level: '' }), /valid course level/);
+  assert.equal(calls, 0);
+});
+
+test('the confirmed server title can be normalized while the selected ID must match', async () => {
+  const result = await apiReturning({ status: true, data: { ...course, title: 'Persisted canonical title' } })
+    .updateCourse(4, form);
+  assert.equal(result.data.title, 'Persisted canonical title');
+  assert.equal(result.data.id, 4);
+});
