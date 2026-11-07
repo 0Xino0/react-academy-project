@@ -37,16 +37,22 @@ export function scheduleErrorMessage(error: unknown, fallback: string): string {
 }
 
 export function createSchedulesApi(client: AxiosInstance) {
-  async function list(url: string): Promise<ApiSchedulesResponse> {
+  async function list(url: string, termId: number): Promise<ApiSchedulesResponse> {
+    if (!Number.isSafeInteger(termId) || termId <= 0) throw new Error('A valid term is required.');
     const { data } = await client.get<ApiSchedulesResponse>(url);
-    if (!data || data.status !== true || !Array.isArray(data.schedules)) throw new Error('Invalid schedule list response.');
+    if (!data || data.status !== true || !Array.isArray(data.schedules)
+      || !data.schedules.every(row => row && Number.isSafeInteger(row.id) && row.id > 0
+        && Number.isSafeInteger(row.class_id) && row.class_id > 0
+        && row.class?.id === row.class_id && row.class.term_id === termId && typeof row.class.name === 'string')) {
+      throw new Error('Invalid schedule list response.');
+    }
     return withCalendarDisplay(data);
   }
 
   return {
-    getSchedules: (termId: number) => list(`/terms/${termId}/schedules`),
-    getSchedulesForTeacher: (termId: number) => list(`/me/teaching-terms/${termId}/schedules`),
-    getSchedulesForStudent: (termId: number) => list(`/me/studying-terms/${termId}/schedules`),
+    getSchedules: (termId: number) => list(`/terms/${termId}/schedules`, termId),
+    getSchedulesForTeacher: (termId: number) => list(`/me/teaching-terms/${termId}/schedules`, termId),
+    getSchedulesForStudent: (termId: number) => list(`/me/studying-terms/${termId}/schedules`, termId),
     async createSchedule(termId: number, classId: number, form: ApiScheduleFormData): Promise<ApiScheduleResponse> {
       const { data } = await client.post<ApiScheduleResponse>(`/terms/${termId}/classes/${classId}/schedules`, payload(form));
       return single(data);

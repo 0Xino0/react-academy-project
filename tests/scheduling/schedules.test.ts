@@ -7,7 +7,7 @@ import { response, rejectStatus } from '../helpers.ts';
 
 const row = {
   id: 7, class_id: 12, day_of_week: 'monday', start_time: '14:30:00', end_time: '15:30:00',
-  class: { id: 12, term_id: 22, start_date: '2026-03-21', end_date: '2026-11-06' },
+  class: { id: 12, term_id: 22, name: 'Schedule test class', start_date: '2026-03-21', end_date: '2026-11-06' },
 } as ApiSchedule;
 const form = { day_of_week: 'monday', start_time: '14:30', end_time: '15:30' };
 
@@ -88,3 +88,34 @@ test('HTTP 404 and 422 errors remain rejected and validation messages can reach 
     assert.equal(scheduleErrorMessage(error, 'Fallback'), 'Teacher has a time overlap.');
   }
 });
+
+test('invalid term identifiers cannot dispatch any schedule list request', async () => {
+  let calls = 0;
+  const api = createSchedulesApi(axios.create({ adapter: config => {
+    calls++;
+    return Promise.resolve(response(config, { status: true, schedules: [] }));
+  } }));
+  for (const id of [0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const get of [api.getSchedules, api.getSchedulesForTeacher, api.getSchedulesForStudent]) {
+      await assert.rejects(get(id), /valid term/);
+    }
+  }
+  assert.equal(calls, 0);
+});
+
+for (const method of ['getSchedules', 'getSchedulesForTeacher', 'getSchedulesForStudent'] as const) {
+  test(method + ' rejects a different term and malformed row identities before rendering', async () => {
+    const invalidRows = [
+      null, { ...row, id: 0 }, { ...row, class_id: 999 },
+      { ...row, class: null },
+      { ...row, class: { ...row.class, term_id: 23 } },
+      { ...row, class: { ...row.class, name: null } },
+    ];
+    for (const invalid of invalidRows) {
+      const api = createSchedulesApi(axios.create({ adapter: config => Promise.resolve(response(config, {
+        status: true, schedules: [invalid],
+      })) }));
+      await assert.rejects(api[method](22), /Invalid schedule list response/);
+    }
+  });
+}
