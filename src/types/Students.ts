@@ -25,7 +25,13 @@ export interface ApiStudent {
 export interface ApiStudentsResponse {
     status: boolean;
     message: string;
-    data: ApiStudent[] | ApiStudent ;
+    data: ApiStudent[];
+}
+
+export interface ApiStudentResponse {
+    status: boolean;
+    message: string;
+    data: ApiStudent;
 }
 
 export interface DeleteStudentResponse {

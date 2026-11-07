@@ -1,243 +1,58 @@
-import { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { UserPlus } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import AdminSidebar from '../../components/AdminSidebar';
 import { registerTeacher } from '../../services/api';
-import { TeacherRegistrationData } from '../../types/teachers';
-import axios from 'axios';
+import { peopleError } from '../../services/people';
+import type { TeacherRegistrationData } from '../../types/teachers';
+import { useSession } from '../../hooks/useSession';
 
+const empty: TeacherRegistrationData = { national_id: '', first_name: '', last_name: '', phone: '', email: '', password: '', password_confirmation: '' };
+const fields: Array<{ name: keyof TeacherRegistrationData; label: string; type: string }> = [
+  { name: 'national_id', label: 'National ID (10 digits)', type: 'text' },
+  { name: 'first_name', label: 'First name', type: 'text' }, { name: 'last_name', label: 'Last name', type: 'text' },
+  { name: 'phone', label: 'Phone (+989 followed by 9 digits)', type: 'tel' }, { name: 'email', label: 'Email', type: 'email' },
+  { name: 'password', label: 'Password', type: 'password' }, { name: 'password_confirmation', label: 'Confirm password', type: 'password' },
+];
 export default function TeacherRegistration() {
-  // const navigate = useNavigate();
+  const userId = useSession()?.user.id;
+  const version = useRef(0);
+  const [form, setForm] = useState<TeacherRegistrationData>({ ...empty });
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<TeacherRegistrationData>({
-    national_id: '',
-    first_name: '',
-    last_name: '',
-    phone: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    version.current += 1; setForm({ ...empty }); setError(null); setLoading(false);
+    return () => { version.current += 1; };
+  }, [userId]);
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (loading) return;
+    setError(null);
+    if (!/^\+989\d{9}$/.test(form.phone)) { setError('Enter an Iranian mobile number in +989xxxxxxxxx format.'); return; }
+    if (!/^\d{10}$/.test(form.national_id)) { setError('National ID must have exactly 10 digits.'); return; }
+    if (form.password.length < 8 || form.password !== form.password_confirmation) { setError('Passwords must match and have at least 8 characters.'); return; }
+    const current = version.current;
     setLoading(true);
-
-    if (!formData.phone.startsWith('+98')) {
-      toast.error('Phone number must start with +98');
-      setLoading(false);
-      return;
-    }
-    if (formData.password !== formData.password_confirmation) {
-      toast.error('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await registerTeacher(formData);
-      
-      if (response.status === true) {
-        toast.success(response.message || 'Teacher registered successfully!');
-        setFormData({
-          national_id: '',
-          first_name: '',
-          last_name: '', 
-          phone: '',
-          email: '',
-          password: '',
-          password_confirmation: '',
-        });
-        // navigate('/admin/teachers');
-      } else {
-        toast.error(response.message || 'Registration failed');
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        // Handle validation errors
-        if (error.response?.status === 422) {
-          const validationErrors = error.response.data.errors;
-          if (validationErrors) {
-            // Show each validation error
-            Object.entries(validationErrors).forEach(([field, messages]) => {
-              if (Array.isArray(messages)) {
-                messages.forEach(message => {
-                  toast.error(`${field}: ${message}`);
-                });
-              }
-            });
-          } else {
-            toast.error(error.response.data.message || 'Validation failed');
-          }
-        } else {
-          toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
-        }
-      } else {
-        toast.error('Registration failed. Please try again.');
-      }
-      console.error('Registration failed:', error);
-    } finally {
-      setLoading(false);
-    }
+      await registerTeacher(form);
+      if (current !== version.current) return;
+      setForm({ ...empty }); toast.success('Teacher account created.');
+    } catch (error) { if (current === version.current) setError(peopleError(error)); }
+    finally { if (current === version.current) setLoading(false); }
   };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="flex">
-        <AdminSidebar />
-        <div className="flex-1 p-8">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Register New Teacher
-            </h2>
-
-            <div className="bg-white py-8 px-6 shadow rounded-lg">
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                <div>
-                  <label htmlFor="national_id" className="block text-sm font-medium text-gray-700">
-                    National ID
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="national_id"
-                      name="national_id"
-                      type="text"
-                      required
-                      value={formData.national_id}
-                      onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
-                      First Name
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="first_name"
-                        name="first_name"
-                        type="text"
-                        required
-                        value={formData.first_name}
-                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
-                      Last Name
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="last_name"
-                        name="last_name"
-                        type="text"
-                        required
-                        value={formData.last_name}
-                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                    Phone Number (start with +98)
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email address
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                    Password
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      required
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
-                    Confirm Password
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="password_confirmation"
-                      name="password_confirmation"
-                      type="password"
-                      required
-                      value={formData.password_confirmation}
-                      onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                  >
-                    {loading ? (
-                      'Creating account...'
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Create Teacher Account
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="min-h-screen bg-gray-50"><Navbar /><div className="flex"><AdminSidebar />
+    <main className="flex-1 p-8"><div className="max-w-xl mx-auto"><h1 className="text-2xl mb-4">Register teacher</h1>
+      <Link to="/admin/teachers" className="text-indigo-700 underline">Back to teachers</Link>
+      {error && <p role="alert" className="my-4 text-red-700">{error}</p>}
+      <form onSubmit={submit} className="mt-6 rounded bg-white p-6"><fieldset disabled={loading} className="space-y-4">
+        {fields.map(field => <label key={field.name} className="block" htmlFor={field.name}>{field.label}
+          <input id={field.name} name={field.name} type={field.type} required value={form[field.name]}
+            minLength={field.type === 'password' ? 8 : undefined} maxLength={field.name === 'national_id' ? 10 : field.name === 'first_name' || field.name === 'last_name' ? 255 : undefined}
+            pattern={field.name === 'national_id' ? '[0-9]{10}' : field.name === 'phone' ? '[+]989[0-9]{9}' : undefined}
+            autoComplete={field.type === 'password' ? 'new-password' : undefined}
+            onChange={event => setForm(previous => ({ ...previous, [field.name]: event.target.value }))} className="block w-full border rounded p-2" /></label>)}
+        <button disabled={loading} className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">{loading ? 'Creating account...' : 'Create teacher account'}</button>
+      </fieldset></form>
+    </div></main></div></div>;
 }

@@ -60,10 +60,10 @@ export interface RegisterData {
 export interface ApiTeacher {
   id: number;
   user_id: number;
-  salary: number;
-  degree: string;
-  bio: string;
-  resume: string;
+  salary: string | null;
+  degree: string | null;
+  bio: string | null;
+  resume: string | null;
   created_at: string;
   updated_at: string;
 }

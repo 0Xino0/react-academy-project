@@ -14,7 +14,7 @@ export interface ApiTeacherUser {
 export interface ApiTeacher {
     id: number;
     user_id: number;
-    salary: number | string | null;
+    salary: string | null;
     resume: string | null;
     deleted_at: string | null; 
     created_at: string;
@@ -49,7 +49,7 @@ export interface TeacherRegistrationResponse {
 }
 
 export interface TeacherUpdateData {
-    salary: number;
+    salary: string;
 }
 
 export interface TeacherUpdateResponse {
