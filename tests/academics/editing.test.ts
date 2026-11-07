@@ -93,3 +93,22 @@ test('HTTP 404 is preserved for stale or missing classes', async () => {
   const api = createAcademicsApi(axios.create({ adapter: config => rejectStatus(config, 404) }));
   await assert.rejects(api.updateClass(row, form), error => axios.isAxiosError(error) && error.response?.status === 404);
 });
+
+test('archive history is explicitly requested only by history readers', async () => {
+  const calls: unknown[] = [];
+  const api = createAcademicsApi(axios.create({ adapter: config => {
+    calls.push([config.url, config.params]);
+    return Promise.resolve(response(config, { status: true, terms: [], classes: [] }));
+  } }));
+  await api.getTerms(); await api.getTerms(true);
+  await api.getClassesByTermId(11); await api.getClassesByTermId(11, true);
+  assert.deepEqual(calls, [['/terms', undefined], ['/terms', { include_archived: 1 }],
+    ['/terms/11/classes', undefined], ['/terms/11/classes', { include_archived: 1 }]]);
+});
+
+test('student timetable conflicts on class edits remain a visible field error instead of success', async () => {
+  const api = createAcademicsApi(axios.create({ adapter: config => Promise.reject(new axios.AxiosError('Conflict', 'ERR_BAD_REQUEST', config,
+    undefined, response(config, { message: 'Validation failed', errors: { schedule: ['A student has another class at this time.'] } }, 422))) }));
+  try { await api.updateClass(row, form); assert.fail('Conflicting edits must be rejected.'); }
+  catch (error) { assert.equal(academicErrorMessage(error, 'Fallback'), 'A student has another class at this time.'); }
+});

@@ -1,6 +1,7 @@
 import type { CalendarPresentation } from './calendar';
 
 export interface Term extends CalendarPresentation {
+    deleted_at?: string | null;
     id: number;
     year: number;
     season: string;

@@ -5,6 +5,7 @@ import { Registration } from './Registrations';
 import type { CalendarPresentation } from './calendar';
 
 export interface Class extends CalendarPresentation {
+    deleted_at?: string | null;
     id: number;
     name: string;
     course_id: number;
@@ -25,6 +26,7 @@ export interface Class extends CalendarPresentation {
 }
 
 export interface ClassForStudent extends CalendarPresentation {
+    deleted_at?: string | null;
     id: number;
     name: string;
     course_id: number;

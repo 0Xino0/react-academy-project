@@ -20,7 +20,7 @@ export default function Grades() {
   const request = useRef(0);
   useEffect(() => {
     let active = true;
-    getTerms().then(response => { if (active) setTerms(response.terms); })
+    getTerms(true).then(response => { if (active) setTerms(response.terms); })
       .catch(error => { if (active) setError(gradeError(error)); })
       .finally(() => { if (active) setLoadingTerms(false); });
     return () => { active = false; request.current += 1; };
@@ -28,7 +28,7 @@ export default function Grades() {
   useEffect(() => {
     let active = true;
     setClasses([]); setLoadingClasses(!!termId);
-    if (termId) getClassesByTermId(termId).then(response => { if (active) setClasses(response.classes); })
+    if (termId) getClassesByTermId(termId, true).then(response => { if (active) setClasses(response.classes); })
       .catch(error => { if (active) setError(gradeError(error)); })
       .finally(() => { if (active) setLoadingClasses(false); });
     return () => { active = false; };
@@ -49,10 +49,10 @@ export default function Grades() {
       <div className="flex gap-4 mb-6">
         <label>Term<select className="block border rounded p-2" value={termId || ''} disabled={loadingTerms}
           onChange={event => { reset(); setClassId(0); setClasses([]); setTermId(Number(event.target.value)); }}>
-          <option value="">Select term</option>{terms.map(term => <option key={term.id} value={term.id}>{term.season} {term.year}</option>)}</select></label>
+          <option value="">Select term</option>{terms.map(term => <option key={term.id} value={term.id}>{term.season} {term.year}{term.deleted_at ? ' (archived)' : ''}</option>)}</select></label>
         <label>Class<select className="block border rounded p-2" value={classId || ''} disabled={!termId || loadingClasses}
           onChange={event => { reset(); setClassId(Number(event.target.value)); }}>
-          <option value="">Select class</option>{classes.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
+          <option value="">Select class</option>{classes.map(row => <option key={row.id} value={row.id}>{row.name}{row.deleted_at ? ' (archived)' : ''}</option>)}</select></label>
         <button disabled={!classId || loading || loadingClasses} onClick={display} className="self-end rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">
           {loading ? 'Loading...' : 'Display'}</button>
       </div>

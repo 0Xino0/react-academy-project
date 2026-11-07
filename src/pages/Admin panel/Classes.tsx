@@ -237,6 +237,7 @@ export default function Classes() {
     endRegistration_Date: ''
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [classToDelete, setClassToDelete] = useState<Class | null>(null);
 
   const fetchClasses = useCallback(async () => {
@@ -407,23 +408,16 @@ export default function Classes() {
   };
 
   const handleDelete = async () => {
-    if (!classToDelete) return;
-
+    if (!classToDelete || isSubmitting) return;
+    setIsSubmitting(true); setDeleteError(null);
     try {
-      const response = await deleteClass(classToDelete);
-      if (response.status === true) {
-        toast.success('Class deleted successfully');
-        await fetchClasses(); // Refresh classes list
-      } else {
-        toast.error(response.message || 'Failed to delete class');
-      }
+      await deleteClass(classToDelete);
+      setIsDeleteModalOpen(false); setClassToDelete(null);
+      toast.success('Class archived; active enrollments and schedules closed.');
+      await fetchClasses();
     } catch (err) {
-      toast.error('An error occurred while deleting the class');
-      console.error('Error:', err);
-    } finally {
-      setIsDeleteModalOpen(false);
-      setClassToDelete(null);
-    }
+      setDeleteError(academicErrorMessage(err, 'Could not archive the class.'));
+    } finally { setIsSubmitting(false); }
   };
 
   return (
@@ -550,6 +544,7 @@ export default function Classes() {
                         </button>
                         <button 
                           onClick={() => {
+                            setDeleteError(null);
                             setClassToDelete(classItem);
                             setIsDeleteModalOpen(true);
                           }}
@@ -741,21 +736,26 @@ export default function Classes() {
                   setIsDeleteModalOpen(false);
                   setClassToDelete(null);
                 }} 
-                className="text-gray-400 hover:text-gray-500"
+                disabled={isSubmitting} className="text-gray-400 hover:text-gray-500"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             
             <div className="mb-4">
-              <p className="text-sm text-gray-500">
-                Are you sure you want to delete the class "{classToDelete.name}"? This action cannot be undone.
-              </p>
+              <div role="alert" dir="rtl" className="rounded bg-amber-50 p-4 text-sm text-amber-900 space-y-2">
+                <p>با حذف کلاس «{classToDelete.name}»، خود کلاس و تمام برنامه‌های زمانی آن از فهرست‌های فعال خارج می‌شوند.</p>
+                <p>این کلاس در فهرست فعلی {classToDelete.registrations_count} ثبت‌نام فعال دارد. تمام ثبت‌نام‌های فعال آن هنگام حذف، لغو می‌شوند.</p>
+                <p>مانده پرداخت‌نشده همین کلاس بخشوده می‌شود. مبلغ اولیه، پرداخت‌های قبلی و نمره‌ها در سوابق باقی می‌مانند.</p>
+                <p>حذف به‌صورت منطقی انجام می‌شود؛ اطلاعات سابقه از دیتابیس پاک نمی‌شوند.</p>
+              </div>
+              {deleteError && <p role="alert" className="mt-3 text-red-700">{deleteError}</p>}
             </div>
 
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => {
                   setIsDeleteModalOpen(false);
                   setClassToDelete(null);
@@ -766,10 +766,11 @@ export default function Classes() {
               </button>
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={handleDelete}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
-                Delete
+                {isSubmitting ? 'در حال حذف...' : 'تأیید حذف کلاس و لغو ثبت‌نام‌ها'}
               </button>
             </div>
           </div>

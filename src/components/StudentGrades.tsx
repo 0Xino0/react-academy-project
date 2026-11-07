@@ -22,7 +22,7 @@ export default function StudentGrades() {
     let active = true;
     request.current += 1;
     setTerms([]); setTermId(0); setClasses([]); setClassId(0); setGrade(undefined); setError(null); setLoadingTerms(true);
-    getTerms().then(response => { if (active) { setTerms(response.terms); setTermId(response.terms[0]?.id ?? 0); } })
+    getTerms(true).then(response => { if (active) { setTerms(response.terms); setTermId(response.terms[0]?.id ?? 0); } })
       .catch(error => { if (active) setError(gradeError(error)); })
       .finally(() => { if (active) setLoadingTerms(false); });
     return () => { active = false; request.current += 1; };
@@ -55,10 +55,10 @@ export default function StudentGrades() {
     <div className="flex gap-4 mb-6">
       <label>Term<select className="block border rounded p-2" value={termId || ''} disabled={loadingTerms}
         onChange={event => { reset(); setClasses([]); setClassId(0); setTermId(Number(event.target.value)); }}>
-        <option value="">Select term</option>{terms.map(term => <option key={term.id} value={term.id}>{term.season} {term.year}</option>)}</select></label>
+        <option value="">Select term</option>{terms.map(term => <option key={term.id} value={term.id}>{term.season} {term.year}{term.deleted_at ? ' (archived)' : ''}</option>)}</select></label>
       <label>Class<select className="block border rounded p-2" value={classId || ''} disabled={!termId || loadingClasses}
         onChange={event => { reset(); setClassId(Number(event.target.value)); }}>
-        <option value="">Select class</option>{classes.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
+        <option value="">Select class</option>{classes.map(row => <option key={row.id} value={row.id}>{row.name}{row.deleted_at ? ' (archived)' : ''}</option>)}</select></label>
       <button disabled={!classId || loadingGrade || loadingClasses} onClick={display}
         className="self-end rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">{loadingGrade ? 'Loading...' : 'Show grade'}</button>
     </div>

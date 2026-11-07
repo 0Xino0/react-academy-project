@@ -4,11 +4,14 @@ import Navbar from '../../components/Navbar';
 import AdminSidebar from '../../components/AdminSidebar';
 import { getCourses, createCourse, updateCourse, deleteCourse, getCourse } from '../../services/api';
 import toast from 'react-hot-toast';
+import { academicErrorMessage } from '../../services/academics';
 import type { Course, CourseFormData } from '../../types/Courses';
 
 export default function Courses() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -85,15 +88,15 @@ export default function Courses() {
   };
 
   const handleDeleteCourse = async () => {
-    if (!selectedCourse) return;
+    if (!selectedCourse || deleting) return;
+    setDeleting(true); setDeleteError(null);
     try {
       await deleteCourse(selectedCourse.id);
       setCourses(current => current.filter(course => course.id !== selectedCourse.id));
       setIsDeleteModalOpen(false);
-      toast.success('Course deleted successfully');
-    } catch {
-      toast.error('Failed to delete course');
-    }
+      toast.success('Course and its classes archived.');
+    } catch (error) { setDeleteError(academicErrorMessage(error, 'Could not archive the course.')); }
+    finally { setDeleting(false); }
   };
 
   const handleCourseClick = async (courseId: number) => {
@@ -176,6 +179,7 @@ export default function Courses() {
                         <button 
                           onClick={() => {
                             setSelectedCourse(course);
+                            setDeleteError(null);
                             setIsDeleteModalOpen(true);
                           }}
                           className="text-red-600 hover:text-red-900"
@@ -329,20 +333,22 @@ export default function Courses() {
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Delete Course</h2>
-              <button onClick={() => setIsDeleteModalOpen(false)} className="text-gray-400 hover:text-gray-500">
+              <button disabled={deleting} onClick={() => setIsDeleteModalOpen(false)} className="text-gray-400 hover:text-gray-500">
                 <X className="w-6 h-6" />
               </button>
             </div>
             
             <div className="mb-4">
               <p className="text-sm text-gray-500">
-                Are you sure you want to delete {selectedCourse.title}? This action cannot be undone.
+                حذف دوره «{selectedCourse.title}» به‌صورت منطقی، تمام کلاس‌ها و برنامه‌های وابسته را از مدار خارج و ثبت‌نام‌های فعال آن‌ها را لغو می‌کند. مانده همان کلاس‌ها بخشوده می‌شود و اصل مبالغ، پرداخت‌ها و نمره‌ها در سوابق باقی می‌مانند.
               </p>
             </div>
 
+            {deleteError && <p role="alert" className="mb-4 text-red-700">{deleteError}</p>}
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
+                disabled={deleting}
                 onClick={() => setIsDeleteModalOpen(false)}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
@@ -350,6 +356,7 @@ export default function Courses() {
               </button>
               <button
                 type="button"
+                disabled={deleting}
                 onClick={handleDeleteCourse}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >

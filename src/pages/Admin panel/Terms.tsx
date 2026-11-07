@@ -507,8 +507,7 @@ export default function Terms() {
             
             <div className="mb-6">
               <p className="text-gray-600">
-                Are you sure you want to delete the term "{selectedTerm.year} - {selectedTerm.season}"?
-                This action cannot be undone.
+                حذف منطقی ترم «{selectedTerm.year} - {selectedTerm.season}» تمام کلاس‌ها و برنامه‌های وابسته را غیرفعال و ثبت‌نام‌های فعال آن‌ها را لغو می‌کند. مانده همان کلاس‌ها بخشوده می‌شود؛ اصل مبالغ، پرداخت‌ها و نمره‌ها در سوابق باقی می‌مانند.
               </p>
             </div>
 

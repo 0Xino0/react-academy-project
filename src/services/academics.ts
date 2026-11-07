@@ -60,8 +60,8 @@ export function createAcademicsApi(client: AxiosInstance) {
         && Number.isInteger(row.id) && Array.isArray(row.registrations))) throw new Error('Invalid student class list.');
       return withCalendarDisplay(data);
     },
-    async getTerms(): Promise<TermsResponse> {
-      const { data } = await client.get<TermsResponse>('/terms');
+    async getTerms(includeArchived = false): Promise<TermsResponse> {
+      const { data } = await client.get<TermsResponse>('/terms', { params: includeArchived ? { include_archived: 1 } : undefined });
       success(data);
       if (!Array.isArray(data.terms)) throw new Error('Invalid term list response.');
       return withCalendarDisplay(data);
@@ -79,8 +79,8 @@ export function createAcademicsApi(client: AxiosInstance) {
       success(data);
       return data;
     },
-    async getClassesByTermId(id: number): Promise<ClassesResponse> {
-      const { data } = await client.get<ClassesResponse>(`/terms/${id}/classes`);
+    async getClassesByTermId(id: number, includeArchived = false): Promise<ClassesResponse> {
+      const { data } = await client.get<ClassesResponse>(`/terms/${id}/classes`, { params: includeArchived ? { include_archived: 1 } : undefined });
       success(data);
       if (!Array.isArray(data.classes)) throw new Error('Invalid class list response.');
       return withCalendarDisplay(data);
