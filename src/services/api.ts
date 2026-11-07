@@ -5,13 +5,14 @@ import { createSchedulesApi } from './schedules';
 import { createAcademicsApi } from './academics';
 import { createRegistrationsApi } from './registrations';
 import { createPaymentsApi } from './payments';
+import { createGradesApi } from './grades';
 import { withCalendarDisplay } from './calendar';
 // Import AuthApiResponse (which is now updated) and the internal User types
 import { AuthApiResponse, LoginCredentials, RegisterData } from '../types/auth';
 import { ApiTeachersResponse, TeacherDeleteResponse, TeacherRegistrationData, TeacherRegistrationResponse, TeacherUpdateData, TeacherUpdateResponse } from '../types/teachers';
-import { ClassesResponse, ClassesResponseForStudent } from '../types/classes';
+
 import { ApiStudentsResponse, DeleteStudentResponse } from '../types/Students';
-import { ApiGradeResponse, ApiGradesResponse } from '../types/Grades';
+
 
 const { api, auth, logout: signOut } = createHttpClient({
   baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1',
@@ -26,6 +27,7 @@ export const { getDebtsOfStudent, recordPayment } = createPaymentsApi(api);
 export const {
   getTerms, createTerm, updateTerm, deleteTerm,
   getClassesByTermId, createClass, updateClass, deleteClass,
+  getClassesForTeacher, getClassesForStudent,
 } = createAcademicsApi(api);
 
 export const {
@@ -111,37 +113,6 @@ export const deleteStudent = async(student_id: number): Promise<DeleteStudentRes
 
 // Delete Schedule API functions
 
-// Grades List API functions
-export const getGrades = async(class_id: number): Promise<ApiGradesResponse> => {
-  const response = await api.get<ApiGradesResponse>(`/classes/${class_id}/grades`);
-  return withCalendarDisplay(response.data);
-};
-
-// grade of student api functions
-export const getGradesOfStudent = async(class_id: number): Promise<ApiGradeResponse> => {
-  const response = await api.get<ApiGradeResponse>(`/me/classes/${class_id}/grades`);
-  return withCalendarDisplay(response.data);
-};
-
-
-
-export const getClassesForTeacher = async(term_id: number): Promise<ClassesResponse> => {
-  const response = await api.get<ClassesResponse>(`/me/teaching-terms/${term_id}/classes`);
-  return withCalendarDisplay(response.data);
-};
-
-
-export const getClassesForStudent = async(term_id: number): Promise<ClassesResponseForStudent> => {
-  const response = await api.get<ClassesResponseForStudent>(`/me/studying-terms/${term_id}/classes`);
-  return withCalendarDisplay(response.data);
-};
-
-
-// delete registration api functions
-
-// debts list api functions
-
-
-
+export const { getGrades, getGradesOfStudent, saveGrades } = createGradesApi(api);
 
 export default api;

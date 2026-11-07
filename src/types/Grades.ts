@@ -1,53 +1,29 @@
-import { ApiStudent } from "./Students";
-import { ApiTeacher } from "./teachers";
+import type { ApiStudent } from './Students';
+import type { Class } from './classes';
 import type { CalendarPresentation } from './calendar';
-export interface ApiGradeClass extends CalendarPresentation {
-    id: number;
-    name: string;
-    course_id: number;
-    term_id: number;
-    teacher_id: number;
-    start_date: string;
-    end_date: string;
-    tuition_fee: string;
-    capacity: number;
-    startRegistration_Date: string;
-    endRegistration_Date: string;
-    created_at: string;
-    updated_at: string;
-    teacher: ApiTeacher | null;
+
+export interface GradeRecord extends CalendarPresentation {
+  id: number;
+  student_id: number;
+  class_id: number;
+  grade: number;
+  created_at: string;
+  updated_at: string;
+  student: ApiStudent;
 }
 
-export interface ApiGrade {
-    id: number;
-    student_id: number;
-    class_id: number;
-    grade: number;
-    created_at: string;
-    updated_at: string;
-    student: ApiStudent;
-    class: ApiGradeClass;
-}
-export interface ApiGrades {
-    id: number;
-    student_id: number;
-    class_id: number;
-    grade: number;
-    created_at: string;
-    updated_at: string;
-    student: ApiStudent;
-}
-
+export interface ApiGrade extends GradeRecord { class: Class }
 export interface ApiGradesResponse {
-    status: boolean;
-    message: string;
-    data: ApiGrades[];
+  status: boolean;
+  message: string;
+  class: Class;
+  students: ApiStudent[];
+  grades: GradeRecord[];
 }
-
 export interface ApiGradeResponse {
-    status: boolean;
-    message: string;
-    grade: ApiGrade;
+  status: boolean;
+  message: string;
+  grade: ApiGrade | null;
 }
-
-
+export interface GradeEntry { student_id: number; grade: number }
+export interface SaveGradesResponse { status: boolean; message: string; grades: GradeRecord[] }

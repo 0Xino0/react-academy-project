@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
-import type { Class, ClassFormData, ClassResponse, ClassesResponse, DeleteClassResponse } from '../types/classes.ts';
+import type { Class, ClassFormData, ClassResponse, ClassesResponse, ClassesResponseForStudent, DeleteClassResponse } from '../types/classes.ts';
 import type { TermFormData, TermResponse, TermsResponse, DeleteTermResponse } from '../types/Terms.ts';
 import { withCalendarDisplay } from './calendar.ts';
 
@@ -42,6 +42,24 @@ export function academicErrorMessage(error: unknown, fallback: string): string {
 
 export function createAcademicsApi(client: AxiosInstance) {
   return {
+    async getClassesForTeacher(termId: number): Promise<ClassesResponse> {
+      if (!Number.isInteger(termId) || termId <= 0) throw new Error('A valid term is required.');
+      const { data } = await client.get<ClassesResponse>(`/me/teaching-terms/${termId}/classes`);
+      success(data);
+      if (!Array.isArray(data.classes) || !data.classes.every(row => row && row.term_id === termId
+        && Number.isInteger(row.id) && Number.isInteger(row.registrations_count))) throw new Error('Invalid teacher class list.');
+      return withCalendarDisplay(data);
+    },
+    async getClassesForStudent(termId: number, includeCancelled = false): Promise<ClassesResponseForStudent> {
+      if (!Number.isInteger(termId) || termId <= 0) throw new Error('A valid term is required.');
+      const { data } = await client.get<ClassesResponseForStudent>(`/me/studying-terms/${termId}/classes`, {
+        params: includeCancelled ? { include_cancelled: 1 } : undefined,
+      });
+      success(data);
+      if (!Array.isArray(data.classes) || !data.classes.every(row => row && row.term_id === termId
+        && Number.isInteger(row.id) && Array.isArray(row.registrations))) throw new Error('Invalid student class list.');
+      return withCalendarDisplay(data);
+    },
     async getTerms(): Promise<TermsResponse> {
       const { data } = await client.get<TermsResponse>('/terms');
       success(data);

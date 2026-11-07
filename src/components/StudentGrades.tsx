@@ -1,140 +1,76 @@
-// src/components/StudentGrades.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getTerms, getClassesForStudent, getGradesOfStudent } from '../services/api';
-import { Term } from '../types/Terms';
-import { ApiGrade, ApiGradeClass } from '../types/Grades';
+import { gradeError } from '../services/grades';
+import type { Term } from '../types/Terms';
+import type { ApiGrade } from '../types/Grades';
+import type { ClassForStudent } from '../types/classes';
+import { useSession } from '../hooks/useSession';
 
-const StudentGrades = () => {
+export default function StudentGrades() {
+  const userId = useSession()?.user.id;
   const [terms, setTerms] = useState<Term[]>([]);
-  const [selectedTerm, setSelectedTerm] = useState<number | null>(null);
-  const [classes, setClasses] = useState<ApiGradeClass[]>([]);
-  const [selectedClass, setSelectedClass] = useState<number | null>(null);
-  const [grades, setGrades] = useState<ApiGrade[]>([]);
-  const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-
-  // Fetch terms on component mount
+  const [termId, setTermId] = useState(0);
+  const [classes, setClasses] = useState<ClassForStudent[]>([]);
+  const [classId, setClassId] = useState(0);
+  const [grade, setGrade] = useState<ApiGrade | null | undefined>(undefined);
+  const [loadingTerms, setLoadingTerms] = useState(true);
+  const [loadingClasses, setLoadingClasses] = useState(false);
+  const [loadingGrade, setLoadingGrade] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const request = useRef(0);
   useEffect(() => {
-    getTerms().then(res => {
-      setTerms(res.terms);
-      if (res.terms.length > 0) setSelectedTerm(res.terms[0].id);
-    }).catch(err => {
-      setError('Failed to load terms');
-      console.error('Error loading terms:', err);
-    });
-  }, []);
-
-  // Fetch classes when term changes
+    let active = true;
+    request.current += 1;
+    setTerms([]); setTermId(0); setClasses([]); setClassId(0); setGrade(undefined); setError(null); setLoadingTerms(true);
+    getTerms().then(response => { if (active) { setTerms(response.terms); setTermId(response.terms[0]?.id ?? 0); } })
+      .catch(error => { if (active) setError(gradeError(error)); })
+      .finally(() => { if (active) setLoadingTerms(false); });
+    return () => { active = false; request.current += 1; };
+  }, [userId]);
   useEffect(() => {
-    if (selectedTerm) {
-      setLoading(true);
-      getClassesForStudent(selectedTerm)
-        .then(res => {
-          setClasses(res.classes);
-          if (res.classes.length > 0) setSelectedClass(res.classes[0].id);
-        })
-        .catch(err => {
-          setError('Failed to load classes');
-          console.error('Error loading classes:', err);
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [selectedTerm]);
-
-  // Fetch grades when class is selected
-  const handleShowGrades = () => {
-    if (selectedClass) {
-      setLoading(true);
-      getGradesOfStudent(selectedClass)
-        .then(res => {
-          setGrades([res.grade]);
-        })
-        .catch(err => {
-          setError('Failed to load grades');
-          console.error('Error loading grades:', err);
-        })
-        .finally(() => setLoading(false));
-    }
+    let active = true;
+    request.current += 1;
+    setClasses([]); setClassId(0); setGrade(undefined); setLoadingGrade(false); setLoadingClasses(!!termId);
+    if (termId) getClassesForStudent(termId, true).then(response => {
+      if (active) { setClasses(response.classes); setClassId(response.classes[0]?.id ?? 0); }
+    }).catch(error => { if (active) setError(gradeError(error)); })
+      .finally(() => { if (active) setLoadingClasses(false); });
+    return () => { active = false; };
+  }, [termId, userId]);
+  const reset = () => { request.current += 1; setGrade(undefined); setLoadingGrade(false); setError(null); };
+  const display = async () => {
+    if (!classId || loadingGrade) return;
+    const current = ++request.current;
+    setGrade(undefined); setLoadingGrade(true); setError(null);
+    try {
+      const response = await getGradesOfStudent(classId);
+      if (current === request.current) setGrade(response.grade);
+    } catch (error) { if (current === request.current) setError(gradeError(error)); }
+    finally { if (current === request.current) setLoadingGrade(false); }
   };
-
-  return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Student Grades</h2>
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-
-      <div className="flex gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Select Term</label>
-          <select
-            className="p-2 border rounded w-48"
-            value={selectedTerm ?? ''}
-            onChange={e => setSelectedTerm(Number(e.target.value))}
-          >
-            {terms.map(term => (
-              <option key={term.id} value={term.id}>
-                {term.season} {term.year}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Select Class</label>
-          <select
-            className="p-2 border rounded w-48"
-            value={selectedClass ?? ''}
-            onChange={e => setSelectedClass(Number(e.target.value))}
-          >
-            {classes.map(classItem => (
-              <option key={classItem.id} value={classItem.id}>
-                {classItem.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          className="mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={handleShowGrades}
-          disabled={loading || !selectedClass}
-        >
-          {loading ? 'Loading...' : 'Show Grades'}
-        </button>
-      </div>
-
-      {grades.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-6 py-3 border-b text-left">Class Name</th>
-                <th className="px-6 py-3 border-b text-left">Teacher Name</th>
-                <th className="px-6 py-3 border-b text-left">Start Date</th>
-                <th className="px-6 py-3 border-b text-left">End Date</th>
-                <th className="px-6 py-3 border-b text-left">Grade</th>
-              </tr>
-            </thead>
-            <tbody>
-              {grades.map(grade => (
-                <tr key={grade.id}>
-                  <td className="px-6 py-4 border-b">{grade.class.name}</td>
-                  <td className="px-6 py-4 border-b">{grade.class.teacher ? `${grade.class.teacher.user.first_name} ${grade.class.teacher.user.last_name}` : 'Unavailable teacher'}</td>
-                  <td className="px-6 py-4 border-b">{grade.class.display?.start_date ?? '—'}</td>
-                  <td className="px-6 py-4 border-b">{grade.class.display?.end_date ?? '—'}</td>
-                  <td className="px-6 py-4 border-b">{grade.grade}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+  const selected = classes.find(row => row.id === classId);
+  const historical = selected?.registrations.length && selected.registrations.every(row => row.cancelled_at !== null);
+  return <div className="p-4"><h2 className="text-xl font-bold mb-4">Student grades</h2>
+    {error && <p role="alert" className="mb-4 text-red-700">{error}</p>}
+    <div className="flex gap-4 mb-6">
+      <label>Term<select className="block border rounded p-2" value={termId || ''} disabled={loadingTerms}
+        onChange={event => { reset(); setClasses([]); setClassId(0); setTermId(Number(event.target.value)); }}>
+        <option value="">Select term</option>{terms.map(term => <option key={term.id} value={term.id}>{term.season} {term.year}</option>)}</select></label>
+      <label>Class<select className="block border rounded p-2" value={classId || ''} disabled={!termId || loadingClasses}
+        onChange={event => { reset(); setClassId(Number(event.target.value)); }}>
+        <option value="">Select class</option>{classes.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
+      <button disabled={!classId || loadingGrade || loadingClasses} onClick={display}
+        className="self-end rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">{loadingGrade ? 'Loading...' : 'Show grade'}</button>
     </div>
-  );
-};
-
-export default StudentGrades;
+    {loadingClasses && <p>Loading classes...</p>}
+    {!loadingTerms && !loadingClasses && !!termId && !classes.length && <p>No enrollment history in this term.</p>}
+    {historical ? <p className="mb-4 text-gray-600">This enrollment was cancelled. Its recorded grade is retained.</p> : null}
+    {grade === null && <p>A grade has not been recorded yet.</p>}
+    {grade && <table className="min-w-full bg-white text-left"><thead><tr>{['Class', 'Teacher', 'Dates', 'Grade'].map(label =>
+      <th key={label} className="p-3 border-b">{label}</th>)}</tr></thead><tbody><tr>
+        <td className="p-3">{grade.class.name}</td><td className="p-3">{grade.class.teacher ?
+          `${grade.class.teacher.user.first_name} ${grade.class.teacher.user.last_name}` : 'Unavailable teacher'}</td>
+        <td className="p-3" dir="ltr">{grade.class.display?.start_date} – {grade.class.display?.end_date}</td><td className="p-3">{grade.grade}</td>
+      </tr></tbody></table>}
+  </div>;
+}
