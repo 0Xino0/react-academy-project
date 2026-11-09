@@ -145,6 +145,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
           type="number"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           min={minimumCapacity}
+          max="2147483647"
           step="1"
           value={formData.capacity}
           onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
@@ -157,6 +158,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
           type="number"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           min="0"
+          max="99999999.99"
           step="0.01"
           value={formData.tuition_fee}
           onChange={(e) => setFormData({ ...formData, tuition_fee: e.target.value })}
@@ -333,8 +335,8 @@ export default function Classes() {
         term_id: parseInt(formData.term_id),
         start_date: formData.start_date,
         end_date: formData.end_date,
-        capacity: parseInt(formData.capacity),
-        tuition_fee: parseFloat(formData.tuition_fee),
+        capacity: Number(formData.capacity),
+        tuition_fee: Number(formData.tuition_fee),
         startRegistration_Date: formData.startRegistration_Date,
         endRegistration_Date: formData.endRegistration_Date
       };
